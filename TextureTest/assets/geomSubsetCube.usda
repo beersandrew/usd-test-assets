@@ -1,0 +1,82 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    upAxis = "Y"
+)
+
+def Xform "World"
+{
+    def Mesh "Cube"
+    {
+        int[] faceVertexCounts = [4, 4, 4, 4, 4, 4]
+        int[] faceVertexIndices = [0, 1, 2, 3, 7, 6, 5, 4, 0, 4, 5, 1, 1, 5, 6, 2, 2, 6, 7, 3, 3, 7, 4, 0]
+        point3f[] points = [(-0.5, -0.5, 0.5), (0.5, -0.5, 0.5), (0.5, 0.5, 0.5), (-0.5, 0.5, 0.5), (-0.5, -0.5, -0.5), (0.5, -0.5, -0.5), (0.5, 0.5, -0.5), (-0.5, 0.5, -0.5)]
+
+        def GeomSubset "FrontFace" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            uniform token elementType = "face"
+            uniform token familyName = "materialBind"
+            int[] indices = [0]
+            rel material:binding = </World/redMaterial>
+        }
+
+        def GeomSubset "BackFace" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            uniform token elementType = "face"
+            uniform token familyName = "materialBind"
+            int[] indices = [1]
+            rel material:binding = </World/redMaterial>
+        }
+
+        def GeomSubset "LeftFace"
+        {
+            uniform token elementType = "face"
+            int[] indices = [2]
+        }
+
+        def GeomSubset "RightFace"
+        {
+            uniform token elementType = "face"
+            int[] indices = [3]
+        }
+
+        def GeomSubset "TopFace"
+        {
+            uniform token elementType = "face"
+            int[] indices = [4]
+        }
+
+        def GeomSubset "BottomFace"
+        {
+            uniform token elementType = "face"
+            int[] indices = [5]
+        }
+    }
+
+    def Material "redMaterial"
+    {
+        token outputs:displacement.connect = </World/redMaterial/redShader.outputs:displacement>
+        token outputs:surface.connect = </World/redMaterial/redShader.outputs:surface>
+
+        def Shader "redShader"
+        {
+            uniform token info:id = "UsdPreviewSurface"
+            color3f inputs:diffuseColor.connect = </World/redMaterial/redTexture.outputs:rgb>
+            token outputs:displacement
+            token outputs:surface
+        }
+
+        def Shader "redTexture"
+        {
+            uniform token info:id = "UsdUVTexture"
+            asset inputs:file = @../texture/red.jpg@
+            vector3f outputs:rgb
+        }
+    }
+}
+
