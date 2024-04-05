@@ -30,31 +30,39 @@ def Xform "World"
             uniform token elementType = "face"
             uniform token familyName = "materialBind"
             int[] indices = [1]
-            rel material:binding = </World/redMaterial>
+            rel material:binding = </World/greenMaterial>
         }
 
         def GeomSubset "LeftFace"
         {
             uniform token elementType = "face"
+            uniform token familyName = "materialBind"
             int[] indices = [2]
+            rel material:binding = </World/blueMaterial>
         }
 
         def GeomSubset "RightFace"
         {
             uniform token elementType = "face"
+            uniform token familyName = "materialBind"
             int[] indices = [3]
+            rel material:binding = </World/cyanMaterial>
         }
 
         def GeomSubset "TopFace"
         {
             uniform token elementType = "face"
+            uniform token familyName = "materialBind"
             int[] indices = [4]
+            rel material:binding = </World/magentaMaterial>
         }
 
         def GeomSubset "BottomFace"
         {
             uniform token elementType = "face"
+            uniform token familyName = "materialBind"
             int[] indices = [5]
+            rel material:binding = </World/yellowMaterial>
         }
     }
 
@@ -75,6 +83,111 @@ def Xform "World"
         {
             uniform token info:id = "UsdUVTexture"
             asset inputs:file = @../texture/red.jpg@
+            vector3f outputs:rgb
+        }
+    }
+
+    def Material "cyanMaterial"
+    {
+        token outputs:displacement.connect = </World/cyanMaterial/cyanShader.outputs:displacement>
+        token outputs:surface.connect = </World/cyanMaterial/cyanShader.outputs:surface>
+
+        def Shader "cyanShader"
+        {
+            uniform token info:id = "UsdPreviewSurface"
+            color3f inputs:diffuseColor.connect = </World/cyanMaterial/cyanTexture.outputs:rgb>
+            token outputs:displacement
+            token outputs:surface
+        }
+
+        def Shader "cyanTexture"
+        {
+            uniform token info:id = "UsdUVTexture"
+            asset inputs:file = @../texture/cyan.jpg@
+            vector3f outputs:rgb
+        }
+    }
+
+    def Material "blueMaterial"
+    {
+        token outputs:displacement.connect = </World/blueMaterial/blueShader.outputs:displacement>
+        token outputs:surface.connect = </World/blueMaterial/blueShader.outputs:surface>
+
+        def Shader "blueShader"
+        {
+            uniform token info:id = "UsdPreviewSurface"
+            color3f inputs:diffuseColor.connect = </World/blueMaterial/blueTexture.outputs:rgb>
+            token outputs:displacement
+            token outputs:surface
+        }
+
+        def Shader "blueTexture"
+        {
+            uniform token info:id = "UsdUVTexture"
+            asset inputs:file = @../texture/blue.jpg@
+            vector3f outputs:rgb
+        }
+    }
+
+    def Material "greenMaterial"
+    {
+        token outputs:displacement.connect = </World/greenMaterial/greenShader.outputs:displacement>
+        token outputs:surface.connect = </World/greenMaterial/greenShader.outputs:surface>
+
+        def Shader "greenShader"
+        {
+            uniform token info:id = "UsdPreviewSurface"
+            color3f inputs:diffuseColor.connect = </World/greenMaterial/greenTexture.outputs:rgb>
+            token outputs:displacement
+            token outputs:surface
+        }
+
+        def Shader "greenTexture"
+        {
+            uniform token info:id = "UsdUVTexture"
+            asset inputs:file = @../texture/green.jpg@
+            vector3f outputs:rgb
+        }
+    }
+
+    def Material "magentaMaterial"
+    {
+        token outputs:displacement.connect = </World/magentaMaterial/magentaShader.outputs:displacement>
+        token outputs:surface.connect = </World/magentaMaterial/magentaShader.outputs:surface>
+
+        def Shader "magentaShader"
+        {
+            uniform token info:id = "UsdPreviewSurface"
+            color3f inputs:diffuseColor.connect = </World/magentaMaterial/magentaTexture.outputs:rgb>
+            token outputs:displacement
+            token outputs:surface
+        }
+
+        def Shader "magentaTexture"
+        {
+            uniform token info:id = "UsdUVTexture"
+            asset inputs:file = @../texture/magenta.jpg@
+            vector3f outputs:rgb
+        }
+    }
+
+    def Material "yellowMaterial"
+    {
+        token outputs:displacement.connect = </World/yellowMaterial/yellowShader.outputs:displacement>
+        token outputs:surface.connect = </World/yellowMaterial/yellowShader.outputs:surface>
+
+        def Shader "yellowShader"
+        {
+            uniform token info:id = "UsdPreviewSurface"
+            color3f inputs:diffuseColor.connect = </World/yellowMaterial/yellowTexture.outputs:rgb>
+            token outputs:displacement
+            token outputs:surface
+        }
+
+        def Shader "yellowTexture"
+        {
+            uniform token info:id = "UsdUVTexture"
+            asset inputs:file = @../texture/yellow.jpg@
             vector3f outputs:rgb
         }
     }
