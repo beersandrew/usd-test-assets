@@ -37,4 +37,4 @@ You can get the above list by running the OpenUSD build script with -v for verbo
 9. Edit the build configuration / scheme you want to debug and change the exe to correct exe file which is <install_dir>/bin, by default it will select <cmake_build_dir>
 
 
-Thread for this question is (here)[https://forum.aousd.org/t/setting-up-debugging-usd-code-in-clion-on-macos/1542]
+Thread for this question is [here](https://forum.aousd.org/t/setting-up-debugging-usd-code-in-clion-on-macos/1542)
