@@ -33,6 +33,7 @@ You can get the above list by running the OpenUSD build script with -v for verbo
     - This should trigger an error of not finding `libboost_python39.dylib` but it generates <install_dir>
 8. Copy all non usd libs from <build_script_build_dir>/lib to <install_dir>/lib
     - this includes `libboost_python39.dylib` and other dependencies pulled in by the build script
+    - *Note: is there a way to include some directory here rather than copy / paste?*
 9. Edit the build configuration / scheme you want to debug and change the exe to correct exe file which is <install_dir>/bin, by default it will select <cmake_build_dir>
 
 
