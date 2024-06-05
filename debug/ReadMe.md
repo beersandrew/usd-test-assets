@@ -26,6 +26,7 @@ You can get the above list by running the OpenUSD build script with -v for verbo
         <build_script_build_dir>/lib
     ...
     ```
+    - *Note: is there a way to add this to the CMake options?*
 6. Build CMake project to generate build configurations
     - this creates <cmake_build_dir> which should be thought of as a 'staging' area and not a running / debugging dir
 7. Click Debug on the build configuration / scheme you want to debug, this will run the install job
