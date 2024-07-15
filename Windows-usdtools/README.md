@@ -20,12 +20,17 @@
     - All tools can be found [here](https://openusd.org/release/toolset.html)
 
 ### Grab binaries from here
-1. go to `binaries_2405` to get the built tools for usd verions 24.05
-1. 
-
-## Usdzip Only
-
-
+1. Clone this repo
+1. unzip 2405 in <some_directory>/2405
+1. Set environment variables. Type 'environment variables' into the search / start menu on windows and open up `Edit system environment variables`
+1.  Find PATH -> Edit -> add the paths given 
+    - `<some_directory>\2405\bin`
+    - `<some_directory>\2405\lib`
+1.  Find or create PYTHONPATH -> Edit -> add the path given 
+    - `<some_directory>\2405\lib\python`
+1. Restart any terminals / shells / programs you have so they can read the new path variables
+1. Opening cmd or any shell now will allow you to run usd tools (usdview, usdzip...etc)
+    - All tools can be found [here](https://openusd.org/release/toolset.html)
 
 ## UsdView Only
 
