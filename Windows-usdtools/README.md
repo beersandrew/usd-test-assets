@@ -3,6 +3,7 @@
 ## All UsdTools
 
 ### Install USD itself
+1. Make sure python is installed (https://www.python.org/downloads/)
 1.  Install Microsoft Visual Studio (https://visualstudio.microsoft.com/)
     - NOTE: this is not Visual Studio Code
 1.  Clone USD repo (https://github.com/PixarAnimationStudios/OpenUSD) in some directory, let's call it <usd_repo_directory>
@@ -20,13 +21,14 @@
     - All tools can be found [here](https://openusd.org/release/toolset.html)
 
 ### Grab binaries from here
+1. Make sure python is installed (https://www.python.org/downloads/)
 1. Clone this repo
-1. unzip 2405 in <some_directory>/2405
+1. unzip 2405 in `<some_directory>/2405`
 1. Set environment variables. Type 'environment variables' into the search / start menu on windows and open up `Edit system environment variables`
-1.  Find PATH -> Edit -> add the paths given 
+1.  Find PATH -> Edit -> add the paths 
     - `<some_directory>\2405\bin`
     - `<some_directory>\2405\lib`
-1.  Find or create PYTHONPATH -> Edit -> add the path given 
+1.  Find or create PYTHONPATH -> Edit -> add the path 
     - `<some_directory>\2405\lib\python`
 1. Restart any terminals / shells / programs you have so they can read the new path variables
 1. Opening cmd or any shell now will allow you to run usd tools (usdview, usdzip...etc)
@@ -43,3 +45,15 @@ This can be run from Ominverse
 - Find USD USDView
 - Install
 - Open (Now it should be in the Library Tab)
+
+## Usdzip only
+
+1. Make sure python is installed (https://www.python.org/downloads/)
+2. `pip install usd-core`
+1. Clone this repo in `<some_directory>`
+3. Add the pythontools folder located at `2405/pythontools` in this repo, to your environment PATH
+    1. Type 'environment variables' into the search / start menu on windows and open up `Edit system environment variables`
+    1.  Find PATH -> Edit -> add the path
+        -  `<some_directory>\2405\pythontools`
+
+NOTE: In the future versions may change, and something may break, since the files here are for version 24.5, if that happens make sure to use usd-core @24.5 (https://stackoverflow.com/questions/5226311/installing-specific-package-version-with-pip)
