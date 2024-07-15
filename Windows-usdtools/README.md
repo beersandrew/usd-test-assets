@@ -23,7 +23,7 @@
 ### Grab binaries from here
 1. Make sure python is installed (https://www.python.org/downloads/)
 1. Clone this repo
-1. unzip 2405 in `<some_directory>/2405`
+1. unzip 2405/all.zip in `<some_directory>/2405`
 1. Set environment variables. Type 'environment variables' into the search / start menu on windows and open up `Edit system environment variables`
 1.  Find PATH -> Edit -> add the paths 
     - `<some_directory>\2405\bin`
