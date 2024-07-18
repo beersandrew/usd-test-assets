@@ -20,6 +20,9 @@
 1. Opening cmd or any shell now will allow you to run usd tools (usdview, usdzip...etc)
     - All tools can be found [here](https://openusd.org/release/toolset.html)
 
+### Grab USD from NVIDIA
+1. Find the built USD with Python here: https://developer.nvidia.com/usd#libraries-and-tools
+
 ### Grab binaries from here
 1. Make sure python is installed (https://www.python.org/downloads/)
 1. Clone this repo
