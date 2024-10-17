@@ -1,0 +1,35 @@
+#usda 1.0
+(
+    defaultPrim = "test"
+    metersPerUnit = 0.01
+    upAxis = "Y"
+)
+
+def Scope "all" 
+{
+    def Xform "usd" (
+        prepend references = @./usd.usd@</Geometry>
+    )
+    {
+        
+    }
+    def Xform "usda" (
+        prepend references = @./usda.usda@</Geometry>
+    )
+    {
+        
+    }
+    def Xform "usdc" (
+        prepend references = @./usdc.usdc@</Geometry>
+    )
+    {
+        
+    }
+    def Xform "usdz" (
+        prepend references = @./usdz.usdz@</Geometry>
+    )
+    {
+        
+    }
+}
+
