@@ -1,0 +1,13 @@
+#usda 1.0
+(
+    defaultPrim = "Root"
+    metersPerUnit = 0.01
+    upAxis = "Y"
+)
+
+def Xform "Root" (
+    prepend references = @./myMissingPath.usd@
+)
+{
+    asset myAsset = @./myMissingAsset.jpg@
+}
