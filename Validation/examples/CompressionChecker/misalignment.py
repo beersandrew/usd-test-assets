@@ -7,10 +7,17 @@ os.makedirs("usdz_test", exist_ok=True)
 # Create a simple USD file
 usd_content = """#usda 1.0
 (
-    doc = "Test file"
+    defaultPrim = "Scene"
+    metersPerUnit = 0.01
+    upAxis = "Y"
 )
-def "Test"
+
+def Scope "Scene" 
 {
+    
+    def Cube "MyCube" 
+    {
+    }
 }
 """
 with open("usdz_test/test.usda", "w") as f:

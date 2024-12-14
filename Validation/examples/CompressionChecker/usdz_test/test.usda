@@ -1,7 +1,14 @@
 #usda 1.0
 (
-    doc = "Test file"
+    defaultPrim = "Scene"
+    metersPerUnit = 0.01
+    upAxis = "Y"
 )
-def "Test"
+
+def Scope "Scene" 
 {
+    
+    def Cube "MyCube" 
+    {
+    }
 }

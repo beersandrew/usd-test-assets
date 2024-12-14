@@ -6,8 +6,7 @@
 )
 
 def Xform "Root" (
-    prepend references = @./myMissingPath.usd@
+    prepend references = @./misaligned.usdz@
 )
 {
-    asset myAsset = @./myMissingAsset.jpg@
 }
