@@ -1,0 +1,54 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    upAxis = "Y"
+)
+
+def Xform "World"
+{
+    def Cube "Cube" (
+        prepend apiSchemas = ["MaterialBindingAPI"]
+    )
+    {
+        rel material:binding = </World/Material>
+    }
+
+    def Material "Material"
+    {
+        token outputs:mtlx:surface.connect = </World/Material/PreviewSurface.outputs:out>
+
+        def Shader "PreviewSurface" (
+            prepend apiSchemas = ["NodeGraphNodeAPI"]
+        )
+        {
+            uniform token info:id = "ND_UsdPreviewSurface_surfaceshader"
+            color3f inputs:diffuseColor.connect = </World/Material/Color.outputs:out>
+            token outputs:out
+            uniform float2 ui:nodegraph:node:pos = (-200, 100)
+            uniform float2 ui:nodegraph:node:size = (100, 100)
+        }
+
+        def Shader "Color" (
+            prepend apiSchemas = ["NodeGraphNodeAPI"]
+        )
+        {
+            uniform token info:id = "ND_constant_color3"
+            color3f inputs:value = (1, 0.023, 0.701)
+            color3f outputs:out
+            uniform float2 ui:nodegraph:node:pos = (-500, 100)
+            uniform float2 ui:nodegraph:node:size = (200, 100)
+        }
+
+        def Backdrop "Backdrop" (
+            prepend apiSchemas = ["NodeGraphNodeAPI"]
+        )
+        {
+            uniform token ui:description = "MyMaterial Nodes"
+            uniform color3f ui:nodegraph:node:displayColor = (1, 0, 0)
+            uniform float2 ui:nodegraph:node:pos = (-600, 50)
+            uniform float2 ui:nodegraph:node:size = (1000, 400)
+        }
+    }
+}
+
