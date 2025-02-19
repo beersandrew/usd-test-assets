@@ -1,0 +1,19 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "World"
+{
+    def Xform "Object" (
+        prepend references = @cube.usda@</myCube>
+    )
+    {
+        float3 xformOp:translate = (0, 0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+
+    }
+}
