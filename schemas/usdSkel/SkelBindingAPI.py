@@ -15,7 +15,6 @@ skelRootBinding = UsdSkel.BindingAPI.Apply(skelRoot.GetPrim())
 
 # Skeleton
 skeleton = UsdSkel.Skeleton.Define(stage, skelRoot.GetPath().AppendChild("Skeleton"))
-skelBinding = UsdSkel.BindingAPI.Apply(skeleton.GetPrim())
 
 joints = ["Shoulder", "Shoulder/Elbow", "Shoulder/Elbow/Hand"]
 skeleton.GetJointsAttr().Set(joints)
@@ -37,7 +36,7 @@ skeleton.GetRestTransformsAttr().Set(restTransforms)
 
 
 # Animation
-animation = UsdSkel.Animation.Define(stage, skeleton.GetPath().AppendChild("Animation"))
+animation = UsdSkel.Animation.Define(stage, skelRoot.GetPath().AppendChild("Animation"))
 animation.GetJointsAttr().Set(["Shoulder/Elbow"])
 animation.GetTranslationsAttr().Set([Gf.Vec3f(0, 0, 2)])
 
@@ -47,7 +46,7 @@ animation.GetRotationsAttr().Set([Gf.Quatf(0.7071, 0.7071, 0, 0)], 10.0)
 
 animation.GetScalesAttr().Set([Gf.Vec3h(1, 1, 1)])
 
-skelBinding.CreateAnimationSourceRel().AddTarget(animation.GetPath())
+skelRootBinding.CreateAnimationSourceRel().AddTarget(animation.GetPath())
 
 
 # Mesh

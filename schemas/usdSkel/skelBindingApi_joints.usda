@@ -12,25 +12,24 @@ def Xform "World"
         prepend apiSchemas = ["SkelBindingAPI"]
     )
     {
-        def Skeleton "Skeleton" (
-            prepend apiSchemas = ["SkelBindingAPI"]
-        )
+        prepend rel skel:animationSource = </World/SkelRoot/Animation>
+
+        def Skeleton "Skeleton"
         {
             uniform matrix4d[] bindTransforms = [( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1) ), ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 2, 1) ), ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 4, 1) )]
             uniform token[] joints = ["Shoulder", "Shoulder/Elbow", "Shoulder/Elbow/Hand"]
             uniform matrix4d[] restTransforms = [( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1) ), ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 2, 1) ), ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 2, 1) )]
-            prepend rel skel:animationSource = </World/SkelRoot/Skeleton/Animation>
+        }
 
-            def SkelAnimation "Animation"
-            {
-                uniform token[] joints = ["Shoulder/Elbow"]
-                quatf[] rotations.timeSamples = {
-                    1: [(1, 0, 0, 0)],
-                    10: [(0.7071, 0.7071, 0, 0)],
-                }
-                half3[] scales = [(1, 1, 1)]
-                float3[] translations = [(0, 0, 2)]
+        def SkelAnimation "Animation"
+        {
+            uniform token[] joints = ["Shoulder/Elbow"]
+            quatf[] rotations.timeSamples = {
+                1: [(1, 0, 0, 0)],
+                10: [(0.7071, 0.7071, 0, 0)],
             }
+            half3[] scales = [(1, 1, 1)]
+            float3[] translations = [(0, 0, 2)]
         }
 
         def Mesh "Mesh" (
