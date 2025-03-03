@@ -8,21 +8,11 @@
 
 def Xform "World"
 {
-
-    def Camera "MainCam"
-    {
-        float2 clippingRange = (0.1, 1000)
-        float focalLength = 50
-        float3 xformOp:translate = (-2, -0.5, 14)
-        float xformOp:rotateY = 50
-        uniform token[] xformOpOrder = ["xformOp:rotateY", "xformOp:translate"]
-    }
-
-    def SkelRoot "SkelRoot" (
+    def SkelRoot "JointSkelRoot" (
         prepend apiSchemas = ["SkelBindingAPI"]
     )
     {
-        prepend rel skel:animationSource = </World/SkelRoot/Animation>
+        prepend rel skel:animationSource = </World/JointSkelRoot/Animation>
 
         def Skeleton "Skeleton"
         {
@@ -48,7 +38,7 @@ def Xform "World"
         {
             int[] faceVertexCounts = [4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
             int[] faceVertexIndices = [2, 3, 1, 0, 6, 7, 5, 4, 8, 9, 7, 6, 3, 2, 9, 8, 10, 11, 4, 5, 0, 1, 11, 10, 7, 9, 10, 5, 9, 2, 0, 10, 3, 8, 11, 1, 8, 6, 4, 11]
-            point3f[] points = [(0.5, -0.5, 4), (-0.5, -0.5, 4), (0.5, 0.5, 4), (-0.5, 0.5, 4), (-0.5, -0.5, 0), (0.5, -0.5, 0), (-0.5, 0.5, 0), (0.5, 0.5, 0), (-0.5, 0.5, 2), (0.5, 0.5, 2), (0.5, -0.5, 2), (-0.5, -0.5, 2)]
+            point3f[] points = [(2.5, -0.5, 4), (1.5, -0.5, 4), (2.5, 0.5, 4), (1.5, 0.5, 4), (1.5, -0.5, 0), (2.5, -0.5, 0), (1.5, 0.5, 0), (2.5, 0.5, 0), (1.5, 0.5, 2), (2.5, 0.5, 2), (2.5, -0.5, 2), (1.5, -0.5, 2)]
             matrix4d primvars:skel:geomBindTransform = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1) )
             int[] primvars:skel:jointIndices = [2, 2, 2, 2, 0, 0, 0, 0, 1, 1, 1, 1] (
                 elementSize = 1
@@ -58,7 +48,56 @@ def Xform "World"
                 elementSize = 1
                 interpolation = "vertex"
             )
-            prepend rel skel:skeleton = </World/SkelRoot/Skeleton>
+            prepend rel skel:skeleton = </World/JointSkelRoot/Skeleton>
+        }
+    }
+
+    def SkelRoot "MorphingTri" (
+        prepend apiSchemas = ["SkelBindingAPI"]
+    )
+    {
+        rel skel:skeleton = </World/MorphingTri/Skel>
+        def Skeleton "Skel" {}
+
+        rel skel:animationSource = </World/MorphingTri/Anim>
+        def SkelAnimation "Anim"
+        {
+            uniform token[] blendShapes = ["iso", "right"]
+            float[] blendShapeWeights.timeSamples = {
+                1: [0, 0],
+                3: [1, 0],
+                5: [0, 0],
+                7: [0, 1],
+                10: [1, 1],
+            }
+        }
+
+        def Mesh "Mesh" (
+            prepend apiSchemas = ["SkelBindingAPI"]
+        )
+        {
+            point3f[] points = [(0.5, 0, 0), (0, 0.8660254, 0), (-0.5, 0, 0)]
+
+            uniform token[] skel:blendShapes = ["iso", "right"]
+            rel skel:blendShapeTargets = [
+                </World/MorphingTri/Mesh/iso>,
+                </World/MorphingTri/Mesh/right>,
+            ]
+            def BlendShape "iso"
+            {
+                uniform vector3f[] offsets = [(0, 0.8660254, 0)]
+                uniform int[] pointIndices = [1]
+            }
+            def BlendShape "right"
+            {
+                uniform vector3f[] offsets = [(-0.5, 0.1339746, 0)]
+                uniform int[] pointIndices = [1]
+            }
+
+
+            float3[] extent = [(-0.5, 0, 0), (0.5, 0.8660254, 0)]
+            int[] faceVertexCounts = [3]
+            int[] faceVertexIndices = [0, 1, 2]
         }
     }
 }
