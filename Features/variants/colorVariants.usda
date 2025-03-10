@@ -1,0 +1,50 @@
+#usda 1.0
+(
+    defaultPrim = "colorVariant"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def Xform "colorVariant" (
+    variants = {
+        string colors = "purple"
+    }
+    prepend variantSets = "colors"
+)
+{
+    variantSet "colors" = {
+        "red" {
+           def Cube "red"
+            {
+                double size = 10.0
+                color3f[] primvars:displayColor = [(1, 0, 0)]
+            }
+
+        }
+        "purple" {
+            def Cube "purple"
+            {
+                double size = 10.0
+                color3f[] primvars:displayColor = [(1, 0, 1)]
+            }
+
+        }
+        "blue" {
+            def Cube "blue"
+            {
+                double size = 10.0
+                color3f[] primvars:displayColor = [(0, 0, 1)]
+            }
+
+        }
+        "green" {
+            def Cube "green"
+            {
+                double size = 10.0
+                color3f[] primvars:displayColor = [(0, 1, 0)]
+            }
+
+        }
+    }
+}
+

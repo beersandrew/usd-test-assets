@@ -1,0 +1,28 @@
+#usda 1.0
+
+def Xform "World"
+{
+    def Cube "Cube"
+    {
+        rel material:binding = </World/Materials/RedMaterial>
+        double size = 2
+    }
+
+    def "Materials"
+    {
+        def Material "RedMaterial"
+        {
+            token outputs:surface.connect = </World/Materials/RedMaterial/Shader.outputs:surface>
+
+            def Shader "Shader"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (1, 0, 0)
+                float inputs:metallic = 0
+                float inputs:roughness = 0.5
+                token outputs:surface
+            }
+        }
+    }
+}
+
