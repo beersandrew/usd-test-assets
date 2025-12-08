@@ -1,0 +1,40 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+)
+
+def Xform "World"
+{
+    def Mesh "Terrain"
+    {
+        int[] faceVertexCounts = [4]
+        int[] faceVertexIndices = [0, 1, 2, 3]
+        point3f[] points = [(-5, 0, -5), (5, 0, -5), (5, 0, 5), (-5, 0, 5)]
+        uniform token subdivisionScheme = "none"
+    }
+
+    def Xform "Prototypes"
+    {
+        def Mesh "Rock"
+        {
+            int[] faceVertexCounts = [3, 3, 3, 3]
+            int[] faceVertexIndices = [0, 1, 4, 1, 2, 4, 2, 3, 4, 3, 0, 4]
+            point3f[] points = [(-0.3, 0, -0.3), (0.3, 0, -0.3), (0.3, 0, 0.3), (-0.3, 0, 0.3), (0, 0.5, 0)]
+            uniform token subdivisionScheme = "none"
+        }
+    }
+
+    def GenerativeProcedural "RockScatter" (
+        prepend apiSchemas = ["HydraGenerativeProceduralAPI"]
+    )
+    {
+        token primvars:hdGp:proceduralType = "RockScatter"
+        custom float primvars:radius = 10
+        custom int primvars:rockCount = 200
+        custom double primvars:seed = 42
+        custom asset primvars:sourceMesh = @/World/Prototypes/Rock@
+        custom asset primvars:terrain = @/World/Terrain@
+        token proceduralSystem = "hydraGenerativeProcedural"
+    }
+}
+
