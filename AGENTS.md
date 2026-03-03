@@ -88,8 +88,9 @@ Located: `schemas/usdUI/`
 - [x] `Backdrop` — `backdrop.usda` + `Backdrop.py`
 - [x] `NodeGraphNodeAPI` — `nodeGraphNodeApi.usda` + `NodeGraphNodeAPI.py`
 - [x] `SceneGraphPrimAPI` — `SceneGraphPrimAPI.usda` + `SceneGraphPrimAPI.py`
-- [ ] `AccessibilityAPI` — `accessibilityApi.usda` + `AccessibilityAPI.py`
-- [ ] `NodeGraphNodeAPI` hints — `ObjectHints.py`, `PrimHints.py`, `PropertyHints.py`, `AttributeHints.py`
+- [ ] `AccessibilityAPI` (multiple-apply) — `accessibilityApi.usda` + `AccessibilityAPI.py`
+- [ ] UI hint utilities — `uiHints.usda`: `ObjectHints`, `PrimHints`, `PropertyHints`, `AttributeHints`
+  - Note: these are metadata-based hint dictionaries, not applied API schemas
 
 Suggested commits:
 1. `schemas/usdUI: add AccessibilityAPI example`
@@ -107,7 +108,10 @@ Split into the following commits, each with `.usda` + `.py` files:
    - `UsdGeomXform`, `UsdGeomScope`, `UsdGeomXformCommonAPI`
 
 2. **Geometric Primitives** — `primitives.usda`
-   - `UsdGeomSphere`, `UsdGeomCube`, `UsdGeomCone`, `UsdGeomCylinder`, `UsdGeomCapsule`, `UsdGeomPlane`
+   - `UsdGeomSphere`, `UsdGeomCube`, `UsdGeomCone`
+   - `UsdGeomCylinder`, `UsdGeomCylinder_1` (variant with per-end radii)
+   - `UsdGeomCapsule`, `UsdGeomCapsule_1` (variant with per-end radii)
+   - `UsdGeomPlane`
 
 3. **Mesh** — `mesh.usda`
    - `UsdGeomMesh` (polygon mesh + subdivision surface variants)
@@ -161,11 +165,11 @@ Located: `schemas/usdLux/` *(to be created)*
 1. **Punctual Lights** — `punctualLights.usda`
    - `UsdLuxSphereLight`, `UsdLuxDiskLight`, `UsdLuxRectLight`, `UsdLuxCylinderLight`
 
-2. **Environment and Geometry Lights** — `envAndGeoLights.usda`
-   - `UsdLuxDistantLight`, `UsdLuxDomeLight`, `UsdLuxGeometryLight`, `UsdLuxPortalLight`
+2. **Environment and Portal Lights** — `envLights.usda`
+   - `UsdLuxDistantLight`, `UsdLuxDomeLight`, `UsdLuxDomeLight_1` (configurable pole axis), `UsdLuxPortalLight`
 
-3. **Geometry-based Light APIs** — `lightApis.usda`
-   - `UsdLuxMeshLightAPI`, `UsdLuxVolumeLightAPI`
+3. **Geometry-based Lights** — `geoLights.usda`
+   - `UsdLuxGeometryLight` *(deprecated but documented)*, `UsdLuxMeshLightAPI`, `UsdLuxVolumeLightAPI`
 
 4. **Light Shaping and Shadows** — `shapingAndShadow.usda`
    - `UsdLuxShapingAPI`, `UsdLuxShadowAPI`
@@ -173,7 +177,7 @@ Located: `schemas/usdLux/` *(to be created)*
 5. **Light Filters** — `lightFilter.usda`
    - `UsdLuxLightFilter`, `UsdLuxPluginLightFilter`
 
-6. **Plugin Light and LightListAPI** — `pluginAndList.usda`
+6. **Plugin Light and Discovery** — `pluginAndList.usda`
    - `UsdLuxPluginLight`, `UsdLuxLightListAPI`, `UsdLuxLightAPI`
 
 Overview file: `usdLux.usda`
@@ -186,9 +190,9 @@ Located: `schemas/usdRender/` *(to be created)*
 
 Single commit: `schemas/usdRender: add RenderSettings, RenderProduct, RenderPass, RenderVar examples`
 
-- `RenderSettings.usda` — `UsdRenderSettings`, `UsdRenderSettingsBase`
-- `RenderProduct.usda` — `UsdRenderProduct`, `UsdRenderVar`
-- `RenderPass.usda` — `UsdRenderPass`
+- `renderSettings.usda` — `UsdRenderSettings`, `UsdRenderSettingsBase`
+- `renderProduct.usda` — `UsdRenderProduct`, `UsdRenderVar`
+- `renderPass.usda` — `UsdRenderPass`
 - Python generators for each
 
 Overview file: `usdRender.usda`
@@ -203,11 +207,16 @@ Located: `schemas/usdPhysics/` *(to be created)*
    - `UsdPhysicsScene`, `UsdPhysicsRigidBodyAPI`, `UsdPhysicsMassAPI`, `UsdPhysicsMaterialAPI`
 
 2. **Collision** — `collision.usda`
-   - `UsdPhysicsMeshCollisionAPI`
+   - `UsdPhysicsCollisionAPI`, `UsdPhysicsMeshCollisionAPI`, `UsdPhysicsCollisionGroup`
+   - `UsdPhysicsFilteredPairsAPI`
 
 3. **Joints** — `joints.usda`
-   - `UsdPhysicsJoint`, `UsdPhysicsFixedJoint`, `UsdPhysicsRevoluteJoint`,
-     `UsdPhysicsPrismaticJoint`, `UsdPhysicsSphericalJoint`, `UsdPhysicsLimitAPI`
+   - `UsdPhysicsJoint`, `UsdPhysicsFixedJoint`, `UsdPhysicsRevoluteJoint`
+   - `UsdPhysicsPrismaticJoint`, `UsdPhysicsSphericalJoint`, `UsdPhysicsDistanceJoint`
+   - `UsdPhysicsLimitAPI` (multiple-apply), `UsdPhysicsDriveAPI` (multiple-apply)
+
+4. **Articulation** — `articulation.usda`
+   - `UsdPhysicsArticulationRootAPI`
 
 Overview file: `usdPhysics.usda`
 
@@ -217,12 +226,21 @@ Overview file: `usdPhysics.usda`
 
 Located: `schemas/usdVol/` *(to be created)*
 
-Single commit: `schemas/usdVol: add Volume, OpenVDBAsset, Field3DAsset examples`
+1. **Core Volumes** — `volume.usda` + `openVDB.usda` + `field3D.usda`
+   - `UsdVolVolume`, `UsdVolVolumeFieldBase`, `UsdVolVolumeFieldAsset`
+   - `UsdVolOpenVDBAsset`, `UsdVolField3DAsset`
 
-- `volume.usda` — `UsdVolVolume`, `UsdVolFieldBase`, `UsdVolFieldAsset`
-- `openVDB.usda` — `UsdVolOpenVDBAsset`
-- `field3D.usda` — `UsdVolField3DAsset`
-- Python generators for each
+2. **Particle Fields (3D Gaussian Splatting)** — `particleFields.usda`
+   - `UsdVolParticleField`, `UsdVolParticleField3DGaussianSplat`
+   - Applied APIs: `ParticleFieldPositionAttributeAPI`, `ParticleFieldOrientationAttributeAPI`
+   - `ParticleFieldScaleAttributeAPI`, `ParticleFieldOpacityAttributeAPI`
+   - `ParticleFieldKernelGaussianEllipsoidAPI`, `ParticleFieldKernelGaussianSurfletAPI`
+   - `ParticleFieldKernelConstantSurfletAPI`, `ParticleFieldSphericalHarmonicsAttributeAPI`
+   - `ParticleFieldRadianceBaseAPI`
+
+Suggested commits:
+1. `schemas/usdVol: add Volume, OpenVDBAsset, Field3DAsset examples`
+2. `schemas/usdVol: add ParticleField and 3D Gaussian Splat examples`
 
 Overview file: `usdVol.usda`
 
@@ -234,20 +252,118 @@ Located: `schemas/usdProc/` *(to be created)*
 
 Single commit: `schemas/usdProc: add GenerativeProcedural example`
 
-- `generativeProcedural.usda` — `UsdProcGenerativeProcedural`
+- `generativeProcedural.usda` — `UsdProcGenerativeProcedural` (abstract base; must be subclassed)
 - `GenerativeProcedural.py`
 
 Overview file: `usdProc.usda`
 
 ---
 
+### usdHydra — Hydra Procedurals *([  ] not started)*
+
+Located: `schemas/usdHydra/` *(to be created)*
+
+Single commit: `schemas/usdHydra: add HydraGenerativeProceduralAPI example`
+
+- `hydraGenerativeProcedural.usda` — `UsdHydraGenerativeProceduralAPI` applied to a `UsdProcGenerativeProcedural`
+- `HydraGenerativeProcedural.py`
+
+Note: `usdHydra` only defines `HydraGenerativeProceduralAPI`; it extends `usdProc` for Hydra-based evaluation.
+
+---
+
+### usdMtlx — MaterialX Integration *([  ] not started)*
+
+Located: `schemas/usdMtlx/` *(to be created)*
+
+Single commit: `schemas/usdMtlx: add MaterialXConfigAPI example`
+
+- `materialXConfig.usda` — `UsdMtlxMaterialXConfigAPI` applied to a `UsdShadeMaterial`
+- `MaterialXConfig.py`
+
+Note: `usdMtlx` bridges MaterialX documents with USD shading networks. Its primary value is the
+Sdr discovery/parser plugins and `.mtlx` file format support; `MaterialXConfigAPI` stores the
+authoring config on a material prim.
+
+---
+
+### usdSemantics — Semantic Labels *([  ] not started)*
+
+Located: `schemas/usdSemantics/` *(to be created)*
+
+Single commit: `schemas/usdSemantics: add SemanticsLabelsAPI example`
+
+- `semanticsLabels.usda` — `UsdSemanticsLabelsAPI` (multiple-apply) showing multiple taxonomies
+  (e.g., `:category`, `:style`) with hierarchically-inherited token-valued labels
+- `SemanticsLabels.py`
+
+---
+
+### usd (core) — Foundation Schemas *([  ] not started)*
+
+Located: `schemas/usd/` *(to be created)*
+
+These schemas live in the base `usd` module and apply universally across all schema domains.
+
+1. **Collections** — `collections.usda`
+   - `UsdCollectionAPI` (multiple-apply) — named include/exclude sets and membership expressions
+
+2. **Color Spaces** — `colorSpaces.usda`
+   - `UsdColorSpaceAPI` — attaches a `colorSpace` to a prim, inherits hierarchically
+   - `UsdColorSpaceDefinitionAPI` (multiple-apply) — defines custom color spaces
+
+3. **Model and Clips** — `modelAndClips.usda`
+   - `UsdModelAPI` — `kind` metadata and asset info on models
+   - `UsdClipsAPI` — value-clips metadata interface
+
+Suggested commits:
+1. `schemas/usd: add CollectionAPI example`
+2. `schemas/usd: add ColorSpaceAPI and ColorSpaceDefinitionAPI examples`
+3. `schemas/usd: add ModelAPI and ClipsAPI examples`
+
+---
+
+### usdRi — RenderMan Integration *([  ] low priority, some deprecated)*
+
+Located: `schemas/usdRi/` *(to be created, optional)*
+
+Single commit: `schemas/usdRi: add RenderMan API schema examples`
+
+- `statements.usda` — `UsdRiStatementsAPI` (RI attributes and coordinate systems in `ri:` namespace)
+- `renderPass.usda` — `UsdRiRenderPassAPI` (camera visibility, matte collections)
+- `material.usda` — `UsdRiMaterialAPI` *(deprecated)* (RenderMan surface/displacement/volume outputs)
+- `spline.usda` — `UsdRiSplineAPI` *(deprecated)* (general-purpose spline storage)
+
+Note: `usdRi` is RenderMan-specific. Mark deprecated schemas clearly in comments. This module
+is optional and should be done last.
+
+---
+
 ## Recommended Implementation Order
 
-1. `usdGeom` — foundation for all geometry; many other schemas depend on it
-2. `usdShade` — shading/materials used alongside geometry in nearly every scene
+**Core (foundation for all other work):**
+1. `usdGeom` — geometry is required by nearly every other schema
+2. `usdShade` — materials used alongside geometry in almost every scene
+
+**Rendering pipeline:**
 3. `usdLux` — lighting builds on usdGeom and usdShade
 4. `usdRender` — render settings reference lights, geometry, and materials
-5. `usdPhysics` — physics builds on usdGeom geometry prims
-6. `usdVol` — volumes are a standalone geometry concept
-7. `usdProc` — small, self-contained
-8. `usdUI` additions — complete the partial coverage
+5. `usdMtlx` — MaterialX integration extends usdShade
+
+**Simulation and volumes:**
+6. `usdPhysics` — physics builds on usdGeom geometry prims
+7. `usdVol` — volumes build on usdGeom (Volume is a Gprim)
+
+**Procedurals:**
+8. `usdProc` — abstract base for procedural systems
+9. `usdHydra` — extends usdProc for Hydra-based evaluation
+
+**Foundation and cross-cutting:**
+10. `usd` (core) — CollectionAPI, ColorSpaceAPI, ModelAPI, ClipsAPI
+11. `usdSemantics` — semantic labeling, standalone
+
+**Complete existing coverage:**
+12. `usdUI` additions — AccessibilityAPI, UI hint utilities
+
+**Optional / specialized:**
+13. `usdRi` — RenderMan-specific schemas (low priority)
