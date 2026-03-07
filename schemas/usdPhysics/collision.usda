@@ -1,0 +1,60 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+def Xform "World"
+{
+    # ── Mesh with MeshCollisionAPI ────────────────────────────────────────────
+    def Mesh "ComplexRock" (
+        prepend apiSchemas = ["PhysicsCollisionAPI", "PhysicsMeshCollisionAPI"]
+    )
+    {
+        point3f[] points = [(-50,0,-50), (50,0,-50), (0,100,0), (-50,0,50), (50,0,50)]
+        int[] faceVertexCounts = [3, 3, 3, 3]
+        int[] faceVertexIndices = [0,1,2, 1,4,2, 4,3,2, 3,0,2]
+
+        # CollisionAPI: enables collision detection
+        bool physics:collisionEnabled = true
+
+        # MeshCollisionAPI: how the mesh is used for collision
+        # "none" / "convexDecomposition" / "convexHull" / "meshSimplification" / "sdf" / "boundingSphere" / "boundingCube"
+        uniform token physics:approximation = "convexDecomposition"
+    }
+
+    # ── CollisionGroup: group objects and filter pairs ─────────────────────────
+    def PhysicsCollisionGroup "PlayerGroup"
+    {
+        # Merge groups: objects in the same group collide
+        bool physics:mergeGroupName = false
+        prepend rel physics:filteredGroups = [</World/EnemyGroup>]
+
+        # Include all player objects
+        prepend rel collection:colliders:includes = [</World/ComplexRock>]
+    }
+
+    def PhysicsCollisionGroup "EnemyGroup"
+    {
+        prepend rel physics:filteredGroups = [</World/PlayerGroup>]
+    }
+
+    # ── FilteredPairsAPI: disable collision between specific prim pairs ────────
+    def Xform "Ragdoll" (
+        prepend apiSchemas = ["PhysicsFilteredPairsAPI"]
+    )
+    {
+        # These prim pairs will not collide with each other
+        prepend rel physics:filteredPairs = [</World/ComplexRock>]
+
+        def Cube "Torso" (
+            prepend apiSchemas = ["PhysicsCollisionAPI", "PhysicsRigidBodyAPI"]
+        )
+        {
+            double size = 60.0
+            bool physics:collisionEnabled = true
+        }
+    }
+}
