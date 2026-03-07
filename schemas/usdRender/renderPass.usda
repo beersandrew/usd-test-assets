@@ -1,0 +1,103 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+def Xform "World"
+{
+    # ── RenderPass: a named render configuration that can be activated ─────────
+    # RenderPass stores a complete render setup that can be referenced
+    # and activated by a pipeline. Multiple passes can exist for different
+    # render scenarios (e.g., hero shot vs. overview vs. depth pass).
+
+    # ── Hero beauty pass ──────────────────────────────────────────────────────
+    def RenderPass "HeroBeauty"
+    {
+        # RenderSettings prim this pass uses
+        rel renderSource = </World/HeroSettings>
+
+        # Collections included/excluded from this pass
+        # (overrides RenderSettings included purposes)
+        # rel inputPasses = [...]  # Passes that must render before this one
+
+        # Denotes this pass as active for rendering
+        bool passEnabled = true
+
+        # Frame range for this pass
+        int frameStart = 1001
+        int frameEnd = 1100
+        int frameStride = 1
+
+        # Command to invoke this render pass (pipeline-specific)
+        string[] command = ["prman", "-t:4", "-statsLevel", "2"]
+    }
+
+    # ── Shadow pre-pass (renders before hero) ────────────────────────────────
+    def RenderPass "ShadowPass"
+    {
+        rel renderSource = </World/ShadowSettings>
+        bool passEnabled = true
+        int frameStart = 1001
+        int frameEnd = 1100
+    }
+
+    def RenderSettings "HeroSettings"
+    {
+        int2 resolution = (2048, 858)    # 2.39:1 cinemascope
+        rel camera = </World/HeroCamera>
+        rel products = [</World/HeroSettings/BeautyProduct>]
+
+        def RenderProduct "BeautyProduct"
+        {
+            token productName = "/renders/hero/beauty.####.exr"
+            rel orderedVars = [</World/HeroSettings/BeautyProduct/Ci>]
+
+            def RenderVar "Ci"
+            {
+                token sourceName = "Ci"
+                token dataType = "color3f"
+                token sourceType = "raw"
+            }
+        }
+    }
+
+    def RenderSettings "ShadowSettings"
+    {
+        int2 resolution = (4096, 4096)   # High-res shadow map
+        rel camera = </World/SunLight>
+        rel products = [</World/ShadowSettings/ShadowProduct>]
+
+        def RenderProduct "ShadowProduct"
+        {
+            token productName = "/renders/shadow/shadow.####.exr"
+            rel orderedVars = [</World/ShadowSettings/ShadowProduct/Z>]
+
+            def RenderVar "Z"
+            {
+                token sourceName = "z"
+                token dataType = "float"
+                token sourceType = "raw"
+            }
+        }
+    }
+
+    def Camera "HeroCamera"
+    {
+        float focalLength = 65
+        float horizontalAperture = 36
+        float verticalAperture = 15.1
+        double3 xformOp:translate = (0, 120, 800)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    def DistantLight "SunLight"
+    {
+        float inputs:angle = 0.53
+        float inputs:intensity = 100000.0
+        float3 xformOp:rotateXYZ = (-60, 30, 0)
+        uniform token[] xformOpOrder = ["xformOp:rotateXYZ"]
+    }
+}
