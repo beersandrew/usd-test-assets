@@ -1,0 +1,81 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+def Xform "World"
+{
+    # ── MaterialX-configured material ─────────────────────────────────────────
+    # UsdMtlxMaterialXConfigAPI is applied to a Material prim to store
+    # the MaterialX document authoring configuration.
+    def Material "MetalMaterial" (
+        # MaterialXConfigAPI stores the MaterialX version and CMS used
+        # when authoring the material's shading network.
+        prepend apiSchemas = ["MaterialXConfigAPI"]
+    )
+    {
+        # MaterialX specification version used to author this material
+        uniform token mtlx:version = "1.38"
+
+        # Color management system (e.g., "ocio", "acescg")
+        uniform token mtlx:colorManagementSystem = "ocio"
+
+        # ── USD shading network outputs ────────────────────────────────────────
+        token outputs:surface.connect = </World/MetalMaterial/PBRShader.outputs:surface>
+
+        def Shader "PBRShader"
+        {
+            # Using a MaterialX standard surface node
+            uniform token info:id = "ND_standard_surface_surfaceshader"
+
+            # Base color input — connects to a texture
+            color3f inputs:base_color.connect = </World/MetalMaterial/BaseColorTex.outputs:out>
+            float inputs:base = 1.0
+
+            # Metalness: 1.0 = fully metallic
+            float inputs:metalness = 1.0
+
+            # Roughness: 0.2 = slightly glossy metal
+            float inputs:specular_roughness = 0.2
+
+            # Specular IOR for metals
+            float inputs:specular_IOR = 1.5
+
+            token outputs:surface
+        }
+
+        def Shader "BaseColorTex"
+        {
+            uniform token info:id = "ND_image_color3"
+            asset inputs:file = @./textures/metal_basecolor.png@
+            string inputs:texcoord = "UV0"
+            string inputs:uaddressmode = "periodic"
+            string inputs:vaddressmode = "periodic"
+            color3f outputs:out
+        }
+    }
+
+    # ── Simple non-metallic material for comparison ───────────────────────────
+    def Material "PlasticMaterial" (
+        prepend apiSchemas = ["MaterialXConfigAPI"]
+    )
+    {
+        uniform token mtlx:version = "1.38"
+        uniform token mtlx:colorManagementSystem = "acescg"
+
+        token outputs:surface.connect = </World/PlasticMaterial/PlasticShader.outputs:surface>
+
+        def Shader "PlasticShader"
+        {
+            uniform token info:id = "ND_standard_surface_surfaceshader"
+            color3f inputs:base_color = (0.2, 0.4, 0.8)
+            float inputs:base = 1.0
+            float inputs:metalness = 0.0
+            float inputs:specular_roughness = 0.5
+            token outputs:surface
+        }
+    }
+}
