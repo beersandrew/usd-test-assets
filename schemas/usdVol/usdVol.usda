@@ -1,0 +1,10 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    doc = "UsdVol overview: OpenVDB volumes, Field3D, particle fields, 3D Gaussian splats"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+def Xform "World" {}
