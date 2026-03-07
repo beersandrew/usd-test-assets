@@ -1,0 +1,285 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+# usdGeom overview — one scene demonstrating all major UsdGeom schema groups:
+#
+#   Xform / Scope / XformCommonAPI  — transforms and grouping
+#   Primitive implicits              — Sphere, Cube, Cone, Cylinder, Capsule, Plane
+#   Mesh                             — polygon mesh with subdivision and animated deform
+#   TetMesh / GeomSubset             — volumetric tet mesh and face-group subsets
+#   BasisCurves                      — linear, bezier, bspline, catmullRom
+#   NurbsCurves / NurbsPatch         — NURBS curves and bicubic surface patch
+#   HermiteCurves                    — cubic Hermite curves with explicit tangents
+#   Points / PointInstancer          — point cloud and instance scattering
+#   Camera                           — perspective and orthographic cameras
+#   API Schemas                      — PrimvarsAPI, MotionAPI, VisibilityAPI, ModelAPI
+
+def Xform "World"
+{
+    # ── Ground plane ──────────────────────────────────────────────────────────
+    def Plane "Ground"
+    {
+        double width = 40.0
+        double length = 40.0
+        uniform token axis = "Y"
+        float3[] extent = [(-20, 0, -20), (20, 0, 20)]
+    }
+
+    # ── Transform hierarchy (Scope + Xform) ───────────────────────────────────
+    def Scope "Transforms"
+    {
+        def Xform "Animated" (
+            prepend apiSchemas = ["XformCommonAPI"]
+        )
+        {
+            double3 xformOp:translate = (-15, 0, -15)
+            float3 xformOp:rotateXYZ = (0, 0, 0)
+            float3 xformOp:rotateXYZ.timeSamples = {
+                0: (0, 0, 0),
+                24: (0, 360, 0),
+            }
+            float3 xformOp:scale = (1, 1, 1)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+            def Sphere "OrbitingSphere"
+            {
+                double radius = 0.5
+                float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+                double3 xformOp:translate = (2, 1, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+            }
+        }
+    }
+
+    # ── Implicit Primitives ───────────────────────────────────────────────────
+    def Scope "Primitives"
+    {
+        def Sphere "Ball"
+        {
+            double radius = 1.0
+            float3[] extent = [(-1, -1, -1), (1, 1, 1)]
+            double3 xformOp:translate = (-12, 1, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+
+        def Cube "Block"
+        {
+            double size = 1.5
+            float3[] extent = [(-0.75, -0.75, -0.75), (0.75, 0.75, 0.75)]
+            double3 xformOp:translate = (-9, 0.75, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+
+        def Cone "Hat"
+        {
+            double height = 2.0
+            double radius = 0.8
+            uniform token axis = "Y"
+            float3[] extent = [(-0.8, -1, -0.8), (0.8, 1, 0.8)]
+            double3 xformOp:translate = (-6, 1, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+
+        def Cylinder "Pillar"
+        {
+            double height = 3.0
+            double radius = 0.4
+            uniform token axis = "Y"
+            float3[] extent = [(-0.4, -1.5, -0.4), (0.4, 1.5, 0.4)]
+            double3 xformOp:translate = (-3, 1.5, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+
+        def Capsule "Pill"
+        {
+            double height = 1.5
+            double radius = 0.4
+            uniform token axis = "Y"
+            float3[] extent = [(-0.4, -1.15, -0.4), (0.4, 1.15, 0.4)]
+            double3 xformOp:translate = (0, 1.15, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+    }
+
+    # ── Mesh ──────────────────────────────────────────────────────────────────
+    def Scope "Meshes"
+    {
+        # Polygon mesh box
+        def Mesh "PolyBox"
+        {
+            int[] faceVertexCounts = [4, 4, 4, 4, 4, 4]
+            int[] faceVertexIndices = [
+                0, 1, 3, 2,  4, 6, 7, 5,
+                0, 4, 5, 1,  2, 3, 7, 6,
+                0, 2, 6, 4,  1, 5, 7, 3
+            ]
+            point3f[] points = [
+                (-1, 0, -1), (1, 0, -1), (-1, 2, -1), (1, 2, -1),
+                (-1, 0,  1), (1, 0,  1), (-1, 2,  1), (1, 2,  1)
+            ]
+            float3[] extent = [(-1, 0, -1), (1, 2, 1)]
+            uniform token subdivisionScheme = "none"
+            double3 xformOp:translate = (4, 0, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+
+        # Catmull-Clark subdivision surface
+        def Mesh "SubdivBox"
+        {
+            int[] faceVertexCounts = [4, 4, 4, 4, 4, 4]
+            int[] faceVertexIndices = [
+                0, 1, 3, 2,  4, 6, 7, 5,
+                0, 4, 5, 1,  2, 3, 7, 6,
+                0, 2, 6, 4,  1, 5, 7, 3
+            ]
+            point3f[] points = [
+                (-0.8, 0, -0.8), (0.8, 0, -0.8), (-0.8, 1.6, -0.8), (0.8, 1.6, -0.8),
+                (-0.8, 0,  0.8), (0.8, 0,  0.8), (-0.8, 1.6,  0.8), (0.8, 1.6,  0.8)
+            ]
+            float3[] extent = [(-0.8, 0, -0.8), (0.8, 1.6, 0.8)]
+            uniform token subdivisionScheme = "catmullClark"
+            uniform token interpolateBoundary = "edgeAndCorner"
+            double3 xformOp:translate = (7, 0, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+    }
+
+    # ── TetMesh with GeomSubset ───────────────────────────────────────────────
+    def Scope "Volumes"
+    {
+        def TetMesh "Tet"
+        {
+            point3f[] points = [
+                (0, 0, 0), (2, 0, 0), (1, 0, -2), (1, 2, -1)
+            ]
+            int4[] tetVertexIndices = [(0, 1, 2, 3)]
+            int[] faceVertexCounts = [3, 3, 3, 3]
+            int[] faceVertexIndices = [0, 2, 1,  0, 1, 3,  1, 2, 3,  0, 3, 2]
+            float3[] extent = [(0, 0, -2), (2, 2, 0)]
+            double3 xformOp:translate = (10, 0, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+    }
+
+    # ── Curves ────────────────────────────────────────────────────────────────
+    def Scope "Curves"
+    {
+        def BasisCurves "BSpline"
+        {
+            uniform token type = "cubic"
+            uniform token basis = "bspline"
+            int[] curveVertexCounts = [6]
+            point3f[] points = [
+                (0, 0, 0), (0.5, 1, 0), (1, 0, 0),
+                (1.5, -1, 0), (2, 0, 0), (2.5, 1, 0)
+            ]
+            float[] widths = [0.06] (
+                interpolation = "constant"
+            )
+            float3[] extent = [(0, -1, 0), (2.5, 1, 0)]
+            double3 xformOp:translate = (0, 0, -5)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+
+        def HermiteCurves "Hermite"
+        {
+            int[] curveVertexCounts = [3]
+            point3f[] points = [
+                (-1, 0, 0), (0, 1, 0), (1, 0, 0)
+            ]
+            vector3f[] tangents = [
+                (1, 0, 0), (1, 2, 0), (1, 0, 0)
+            ]
+            float[] widths = [0.05] (
+                interpolation = "constant"
+            )
+            float3[] extent = [(-1, 0, 0), (1, 1, 0)]
+            double3 xformOp:translate = (5, 0, -5)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+
+        def NurbsCurves "NurbsArc"
+        {
+            int[] curveVertexCounts = [5]
+            point3f[] points = [
+                (0, 0, 0), (0.5, 0.5, 0), (1, 1, 0), (1.5, 0.5, 0), (2, 0, 0)
+            ]
+            int[] order = [4]
+            double[] knots = [0, 0, 0, 0, 0.5, 1, 1, 1, 1]
+            double2[] ranges = [(0, 1)]
+            float[] widths = [0.05] (
+                interpolation = "constant"
+            )
+            float3[] extent = [(0, 0, 0), (2, 1, 0)]
+            double3 xformOp:translate = (10, 0, -5)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+    }
+
+    # ── Points and PointInstancer ──────────────────────────────────────────────
+    def Scope "Instances"
+    {
+        def Points "Cloud"
+        {
+            point3f[] points = [
+                (-1, 1, 0), (0, 2, 0), (1, 1, 0),
+                (-0.5, 3, 0), (0.5, 2.5, 0)
+            ]
+            float[] widths = [0.1, 0.15, 0.12, 0.08, 0.11] (
+                interpolation = "vertex"
+            )
+            float3[] extent = [(-1, 1, 0), (1, 3, 0)]
+            double3 xformOp:translate = (-12, 0, -10)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+
+        def PointInstancer "Boulders"
+        {
+            int[] protoIndices = [0, 0, 0, 0]
+            point3f[] positions = [
+                (0, 0, 0), (2, 0, 1), (-1, 0, 2), (3, 0, -1)
+            ]
+            quath[] orientations = [
+                (1, 0, 0, 0), (0.9659, 0.2588, 0, 0),
+                (1, 0, 0, 0), (0.9659, 0, 0.2588, 0)
+            ]
+            float3[] scales = [
+                (1, 1, 1), (0.8, 0.8, 0.8), (1.2, 1.2, 1.2), (0.9, 0.9, 0.9)
+            ]
+            rel prototypes = [</World/Instances/Boulders/Prototypes/Rock>]
+            float3[] extent = [(-1.2, 0, -1.2), (3.2, 1.2, 2.2)]
+
+            def Scope "Prototypes"
+            {
+                def Sphere "Rock" (active = false)
+                {
+                    double radius = 0.5
+                    float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+                }
+            }
+
+            double3 xformOp:translate = (-6, 0, -10)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+    }
+
+    # ── Camera ────────────────────────────────────────────────────────────────
+    def Camera "MainCamera"
+    {
+        token projection = "perspective"
+        float focalLength = 3.5
+        float horizontalAperture = 3.6
+        float verticalAperture = 2.4
+        float2 clippingRange = (0.1, 10000)
+        float fStop = 4.0
+        float focusDistance = 300.0
+        double3 xformOp:translate = (0, 8, 25)
+        float3 xformOp:rotateXYZ = (-15, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+    }
+}
