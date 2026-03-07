@@ -1,0 +1,57 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+def Xform "World"
+{
+    # ── UsdRiSplineAPI (DEPRECATED) ────────────────────────────────────────────
+    # DEPRECATED: Use UsdGeomBasisCurves or custom attributes for spline data.
+    # UsdRiSplineAPI provided a generic spline parameter interface matching
+    # RenderMan's spline() shadeop: an interpolation type, knot positions,
+    # and corresponding values. Commonly used for ramp/gradient parameters.
+
+    def Shader "PxrRamp" (
+        prepend apiSchemas = ["RiSplineAPI"]
+    )
+    {
+        uniform token info:id = "PxrRamp"
+
+        # ── SplineAPI attributes ───────────────────────────────────────────────
+        # interpolation: "constant" / "linear" / "catmullRom" / "bspline"
+        uniform token ri:spline:colorRamp:interpolation = "catmullRom"
+
+        # knots: parameter values along the spline [0, 1]
+        uniform float[] ri:spline:colorRamp:knots = [0.0, 0.0, 0.25, 0.5, 0.75, 1.0, 1.0]
+
+        # values: color values at each knot position
+        uniform color3f[] ri:spline:colorRamp:values = [
+            (0.0, 0.0, 0.1),   # Deep blue (bottom)
+            (0.0, 0.0, 0.1),   # Duplicate endpoint for catmullRom
+            (0.1, 0.3, 0.8),   # Sky blue
+            (0.9, 0.9, 1.0),   # Near white (horizon)
+            (1.0, 0.6, 0.2),   # Orange (sunset)
+            (0.8, 0.1, 0.0),   # Red (top)
+            (0.8, 0.1, 0.0)    # Duplicate endpoint for catmullRom
+        ]
+    }
+
+    # ── Float spline (e.g., opacity ramp) ─────────────────────────────────────
+    def Shader "OpacityRamp" (
+        prepend apiSchemas = ["RiSplineAPI"]
+    )
+    {
+        uniform token info:id = "PxrRamp"
+
+        uniform token ri:spline:opacityRamp:interpolation = "linear"
+
+        # Knots: 0=center of effect, 1=edge
+        uniform float[] ri:spline:opacityRamp:knots = [0.0, 0.3, 0.7, 1.0]
+
+        # Values: opacity at each knot (1=opaque, 0=transparent)
+        uniform float[] ri:spline:opacityRamp:values = [1.0, 0.8, 0.2, 0.0]
+    }
+}

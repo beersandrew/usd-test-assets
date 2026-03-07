@@ -1,0 +1,69 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+def Xform "World"
+{
+    # ── UsdRiMaterialAPI (DEPRECATED) ─────────────────────────────────────────
+    # DEPRECATED: Use UsdShadeMaterial with RenderMan-specific shader nodes instead.
+    # UsdRiMaterialAPI stored direct relationships to RenderMan shaders
+    # for surface, displacement, and volume before the UsdShade model was adopted.
+    # Retained here for documentation and legacy asset compatibility.
+
+    def Material "LegacyMaterial" (
+        # NOTE: RiMaterialAPI is deprecated as of USD 21.05+.
+        # Modern pipelines use UsdShadeMaterial + ri:surface shader nodes.
+        prepend apiSchemas = ["RiMaterialAPI"]
+    )
+    {
+        # ri:surface: relationship to a RenderMan surface shader prim
+        rel ri:surface = </World/LegacyMaterial/PxrDisney>
+
+        # ri:displacement: relationship to a displacement shader
+        rel ri:displacement = </World/LegacyMaterial/PxrDisplace>
+
+        # ri:volume: relationship to a volume shader
+        # rel ri:volume = </World/LegacyMaterial/PxrVolume>
+
+        # ── RenderMan surface shader ──────────────────────────────────────────
+        def Shader "PxrDisney"
+        {
+            uniform token info:id = "PxrDisney"
+
+            color3f inputs:baseColor = (0.4, 0.2, 0.1)
+            float inputs:metallic = 0.0
+            float inputs:roughness = 0.5
+            float inputs:specular = 0.5
+            float inputs:subsurface = 0.2
+            color3f inputs:subsurfaceColor = (0.8, 0.4, 0.3)
+
+            token outputs:out
+        }
+
+        # ── RenderMan displacement shader ─────────────────────────────────────
+        def Shader "PxrDisplace"
+        {
+            uniform token info:id = "PxrDisplace"
+
+            # Displacement amount in scene units
+            float inputs:dispAmount = 5.0
+
+            # Scalar displacement map
+            asset inputs:dispScalar.connect = </World/LegacyMaterial/DispTex.outputs:result>
+
+            token outputs:out
+        }
+
+        def Shader "DispTex"
+        {
+            uniform token info:id = "PxrTexture"
+            asset inputs:filename = @./textures/displacement.tex@
+            string inputs:filename_filter = "gaussian"
+            token outputs:result
+        }
+    }
+}
