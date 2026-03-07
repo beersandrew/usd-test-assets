@@ -1,0 +1,45 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+def Xform "World"
+{
+    # SphereLight with ShapingAPI for spotlight-like cone control
+    def SphereLight "Spotlight" (
+        prepend apiSchemas = ["ShapingAPI"]
+    )
+    {
+        float inputs:intensity = 30000.0
+        color3f inputs:color = (1.0, 1.0, 0.9)
+
+        # ShapingAPI: cone angle and softness for spotlight behavior
+        float inputs:shaping:cone:angle = 30.0      # Half-angle of the cone in degrees
+        float inputs:shaping:cone:softness = 0.2    # Softness of the cone edge
+        float inputs:shaping:focus = 5.0            # Concentrates light toward center
+        # IES profile for realistic light distribution
+        asset inputs:shaping:ies:file = @./ies/spot_par38.ies@
+        float inputs:shaping:ies:angleScale = 1.0
+    }
+
+    # RectLight with ShadowAPI for fine-grained shadow control
+    def RectLight "ShadowCaster" (
+        prepend apiSchemas = ["ShadowAPI"]
+    )
+    {
+        float inputs:width = 80.0
+        float inputs:height = 80.0
+        float inputs:intensity = 25000.0
+
+        # ShadowAPI: enable and configure shadow casting
+        bool inputs:shadow:enable = true
+        color3f inputs:shadow:color = (0.0, 0.0, 0.0)
+        float inputs:shadow:distance = 1000.0       # Max distance for shadow casters
+        float inputs:shadow:falloff = 100.0         # Falloff start distance
+        float inputs:shadow:falloffGamma = 1.0
+        float inputs:shadow:bias = 0.01
+    }
+}
