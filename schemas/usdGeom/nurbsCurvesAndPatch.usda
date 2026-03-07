@@ -1,0 +1,96 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+# UsdGeomNurbsCurves — NURBS (Non-Uniform Rational B-Spline) curves,
+#   parameterized by knot vectors and optional weights.
+# UsdGeomNurbsPatch — bicubic NURBS surface patch defined by a 2D
+#   control-point grid with separate U/V knot vectors and orders.
+
+def Xform "World"
+{
+    # ── NurbsCurves: a single cubic NURBS arc ─────────────────────────────────
+    def NurbsCurves "NurbsArc"
+    {
+        int[] curveVertexCounts = [7]
+        point3f[] points = [
+            (1, 0, 0), (1, 0.5528, 0), (0.5528, 1, 0),
+            (0, 1, 0), (-0.5528, 1, 0), (-1, 0.5528, 0),
+            (-1, 0, 0)
+        ]
+        # Rational weights — values other than 1 pull the curve toward that point.
+        double[] weights = [1, 0.7071, 1, 0.7071, 1, 0.7071, 1]
+        # order = degree + 1; order 4 means cubic.
+        int[] order = [4]
+        # knots define the parameter domain; must have count = nPoints + order.
+        double[] knots = [0, 0, 0, 0, 0.5, 0.5, 1, 1, 1, 1]
+        # ranges: [start, end] of the parameter domain per curve.
+        double2[] ranges = [(0, 1)]
+        float[] widths = [0.04] (
+            interpolation = "constant"
+        )
+        float3[] extent = [(-1, 0, 0), (1, 1, 0)]
+        double3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    # ── NurbsCurves: two open cubic NURBS curves ───────────────────────────────
+    def NurbsCurves "TwoNurbsCurves"
+    {
+        # Two curves: 5 control points each, cubic order (4).
+        int[] curveVertexCounts = [5, 5]
+        point3f[] points = [
+            (0, 0, 0), (0.5, 1, 0), (1.5, -0.5, 0), (2.5, 1, 0), (3, 0, 0),
+            (0, 0, 1), (0.5, 0.5, 1), (1.5, -0.3, 1), (2.5, 0.7, 1), (3, 0, 1)
+        ]
+        int[] order = [4, 4]
+        # Uniform knots for a clamped cubic B-spline (nPts=5, order=4 → 9 knots).
+        double[] knots = [0, 0, 0, 0, 0.5, 1, 1, 1, 1,  0, 0, 0, 0, 0.5, 1, 1, 1, 1]
+        double2[] ranges = [(0, 1), (0, 1)]
+        float[] widths = [0.05] (
+            interpolation = "constant"
+        )
+        float3[] extent = [(0, -0.5, 0), (3, 1, 1)]
+        double3 xformOp:translate = (4, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    # ── NurbsPatch: a bicubic NURBS surface ───────────────────────────────────
+    # A 4x4 control-point grid defines a single bicubic patch.
+    def NurbsPatch "NurbsSurface"
+    {
+        # uVertexCount x vVertexCount must equal the total point count.
+        int uVertexCount = 4
+        int vVertexCount = 4
+        # U and V orders (degree+1); 4 = cubic.
+        int uOrder = 4
+        int vOrder = 4
+        # Clamped uniform knots: nPts + order knots per axis (4+4 = 8 per axis).
+        double[] uKnots = [0, 0, 0, 0, 1, 1, 1, 1]
+        double[] vKnots = [0, 0, 0, 0, 1, 1, 1, 1]
+        double2 uRange = (0, 1)
+        double2 vRange = (0, 1)
+        # 16 control points arranged in a 4x4 grid (u runs fastest).
+        point3f[] points = [
+            (-1.5, 0,  1.5), (-0.5, 1,  1.5), ( 0.5, -1,  1.5), ( 1.5, 0,  1.5),
+            (-1.5, 0,  0.5), (-0.5, 0.5, 0.5),( 0.5, -0.5, 0.5),( 1.5, 0,  0.5),
+            (-1.5, 0, -0.5), (-0.5, 0.5,-0.5),( 0.5, -0.5,-0.5),( 1.5, 0, -0.5),
+            (-1.5, 0, -1.5), (-0.5, 1, -1.5), ( 0.5, -1, -1.5), ( 1.5, 0, -1.5)
+        ]
+        # Uniform weights of 1 (non-rational); vary from 1 to get rational surface.
+        double[] weights = [
+            1, 1, 1, 1,
+            1, 1, 1, 1,
+            1, 1, 1, 1,
+            1, 1, 1, 1
+        ]
+        float3[] extent = [(-1.5, -1, -1.5), (1.5, 1, 1.5)]
+        uniform bool doubleSided = 1
+        double3 xformOp:translate = (0, 0, 5)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+}
