@@ -1,0 +1,109 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+# Geometric primitive schemas in UsdGeom — Sphere, Cube, Cone, Cylinder,
+# Cylinder_1, Capsule, Capsule_1, and Plane. Each is an implicit surface defined
+# by a small set of parameters rather than explicit vertex data.
+
+def Xform "World"
+{
+    # ── Sphere ────────────────────────────────────────────────────────────────
+    def Sphere "Ball"
+    {
+        double radius = 1.0
+        # extent gives the axis-aligned bounding box — must be kept in sync with radius.
+        float3[] extent = [(-1, -1, -1), (1, 1, 1)]
+        double3 xformOp:translate = (0, 1, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    # ── Cube ──────────────────────────────────────────────────────────────────
+    def Cube "Block"
+    {
+        # size is the full edge length; the cube is centered at the local origin.
+        double size = 2.0
+        float3[] extent = [(-1, -1, -1), (1, 1, 1)]
+        double3 xformOp:translate = (4, 1, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    # ── Cone ──────────────────────────────────────────────────────────────────
+    def Cone "Hat"
+    {
+        double height = 3.0
+        double radius = 1.0
+        # axis determines which local axis the cone points along (default Y).
+        uniform token axis = "Y"
+        float3[] extent = [(-1, -1.5, -1), (1, 1.5, 1)]
+        double3 xformOp:translate = (8, 1.5, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    # ── Cylinder ──────────────────────────────────────────────────────────────
+    def Cylinder "Pillar"
+    {
+        double height = 4.0
+        double radius = 0.5
+        uniform token axis = "Y"
+        float3[] extent = [(-0.5, -2, -0.5), (0.5, 2, 0.5)]
+        double3 xformOp:translate = (12, 2, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    # ── Cylinder_1: per-end radii variant ─────────────────────────────────────
+    # Cylinder_1 allows a different radius at each end, enabling a frustum/tapered shape.
+    def Cylinder_1 "TaperedPillar"
+    {
+        double height = 4.0
+        double radiusBottom = 0.8   # wider at the base
+        double radiusTop = 0.3      # narrower at the top
+        uniform token axis = "Y"
+        float3[] extent = [(-0.8, -2, -0.8), (0.8, 2, 0.8)]
+        double3 xformOp:translate = (16, 2, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    # ── Capsule ───────────────────────────────────────────────────────────────
+    # A cylinder capped by hemispheres; total height = height + 2*radius.
+    def Capsule "Capsule"
+    {
+        double height = 2.0   # length of the cylindrical mid-section
+        double radius = 0.5
+        uniform token axis = "Y"
+        float3[] extent = [(-0.5, -1.5, -0.5), (0.5, 1.5, 0.5)]
+        double3 xformOp:translate = (20, 1.5, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    # ── Capsule_1: per-end radii variant ──────────────────────────────────────
+    # Capsule_1 allows distinct hemisphere radii at each end.
+    def Capsule_1 "AsymmetricCapsule"
+    {
+        double height = 2.0
+        double radiusBottom = 0.7
+        double radiusTop = 0.3
+        uniform token axis = "Y"
+        float3[] extent = [(-0.7, -1.7, -0.7), (0.7, 2.3, 0.7)]
+        double3 xformOp:translate = (24, 2.0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    # ── Plane ─────────────────────────────────────────────────────────────────
+    # An infinite (or optionally finite with doubleSided) flat plane.
+    def Plane "Ground"
+    {
+        # width and length define the finite extent when doubleSided is false.
+        double width = 20.0
+        double length = 20.0
+        uniform token axis = "Y"   # the plane's normal axis
+        uniform bool doubleSided = 0
+        float3[] extent = [(-10, 0, -10), (10, 0, 10)]
+        double3 xformOp:translate = (12, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+}
