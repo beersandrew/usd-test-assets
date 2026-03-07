@@ -1,0 +1,51 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+def Xform "World"
+{
+    # ── UsdVolVolume: a volume prim that contains field relationships ──────────
+    # The volume references named field prims for density, temperature, etc.
+    def Volume "PyroExplosion"
+    {
+        # Field relationships use the "field:<name>" namespace.
+        # The name maps to the field name requested by the volume shader.
+        rel field:density = </World/PyroExplosion/DensityField>
+        rel field:temperature = </World/PyroExplosion/TemperatureField>
+        rel field:velocity = </World/PyroExplosion/VelocityField>
+
+        # ── OpenVDB field for density ─────────────────────────────────────────
+        def OpenVDBAsset "DensityField"
+        {
+            # Path to the VDB file
+            asset filePath = @./vdb/explosion_0001.vdb@
+            # Which grid inside the VDB file to use
+            token fieldName = "density"
+            # VDB data class: "FogVolume" or "LevelSet"
+            token fieldDataType = "float"
+            # Frame offset for time-varying VDB sequences
+            int fieldIndex = 1
+        }
+
+        def OpenVDBAsset "TemperatureField"
+        {
+            asset filePath = @./vdb/explosion_0001.vdb@
+            token fieldName = "temperature"
+            token fieldDataType = "float"
+        }
+
+        def OpenVDBAsset "VelocityField"
+        {
+            asset filePath = @./vdb/explosion_velocity_0001.vdb@
+            token fieldName = "vel"
+            token fieldDataType = "float3"
+        }
+
+        double3 xformOp:translate = (0, 100, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+}

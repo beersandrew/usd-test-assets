@@ -1,0 +1,28 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+def Xform "World"
+{
+    # ── Field3D asset: similar to OpenVDB but uses Field3D format ─────────────
+    # Field3D is an older Houdini/ILM volume format; less common than VDB today.
+    def Volume "CloudVolume"
+    {
+        rel field:density = </World/CloudVolume/CloudDensity>
+
+        def Field3DAsset "CloudDensity"
+        {
+            # Path to the .f3d file
+            asset filePath = @./f3d/cumulus_cloud.f3d@
+            # Grid name within the Field3D file
+            token fieldName = "density"
+            token fieldDataType = "float"
+            # Layer: Field3D supports named layers (partition/field/layer)
+            token fieldPurpose = "default"
+        }
+    }
+}
