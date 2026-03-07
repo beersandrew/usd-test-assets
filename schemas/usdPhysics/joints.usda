@@ -1,0 +1,82 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+def Xform "World"
+{
+    def Cube "BoxA" (prepend apiSchemas = ["PhysicsRigidBodyAPI", "PhysicsCollisionAPI"])
+    { double size = 40.0; double3 xformOp:translate = (0,200,0); uniform token[] xformOpOrder = ["xformOp:translate"] }
+
+    def Cube "BoxB" (prepend apiSchemas = ["PhysicsRigidBodyAPI", "PhysicsCollisionAPI"])
+    { double size = 40.0; double3 xformOp:translate = (100,200,0); uniform token[] xformOpOrder = ["xformOp:translate"] }
+
+    # ── FixedJoint: welds two bodies together ──────────────────────────────────
+    def PhysicsFixedJoint "Weld"
+    {
+        rel physics:body0 = </World/BoxA>
+        rel physics:body1 = </World/BoxB>
+        bool physics:collisionEnabled = false
+    }
+
+    # ── RevoluteJoint: single rotational DOF (hinge) ───────────────────────────
+    def PhysicsRevoluteJoint "Hinge" (
+        prepend apiSchemas = ["PhysicsLimitAPI:rotX", "PhysicsDriveAPI:rotX"]
+    )
+    {
+        rel physics:body0 = </World/BoxA>
+        rel physics:body1 = </World/BoxB>
+        # Axis of rotation in body0's local frame
+        uniform token physics:axis = "X"
+
+        # LimitAPI:rotX — angular limits
+        float physics:rotX:low = -90.0      # degrees
+        float physics:rotX:high = 90.0
+
+        # DriveAPI:rotX — motorized drive
+        float physics:rotX:stiffness = 1000.0
+        float physics:rotX:damping = 100.0
+        float physics:rotX:maxForce = 5000.0
+        float physics:rotX:targetPosition = 0.0
+        token physics:rotX:type = "force"   # "force" or "acceleration"
+    }
+
+    # ── PrismaticJoint: single translational DOF (slider) ────────────────────
+    def PhysicsPrismaticJoint "Slider" (
+        prepend apiSchemas = ["PhysicsLimitAPI:transX"]
+    )
+    {
+        rel physics:body0 = </World/BoxA>
+        rel physics:body1 = </World/BoxB>
+        uniform token physics:axis = "X"
+        float physics:transX:low = -50.0    # cm
+        float physics:transX:high = 50.0
+    }
+
+    # ── SphericalJoint: ball-and-socket (3 rotational DOF) ───────────────────
+    def PhysicsSphericalJoint "BallSocket" (
+        prepend apiSchemas = ["PhysicsLimitAPI:swing"]
+    )
+    {
+        rel physics:body0 = </World/BoxA>
+        rel physics:body1 = </World/BoxB>
+        # Cone half-angle limit
+        float physics:swing:high = 45.0
+        float physics:swing:low = -1.0      # negative = no low limit for cone
+    }
+
+    # ── DistanceJoint: maintains a distance range between bodies ─────────────
+    def PhysicsDistanceJoint "Spring"
+    {
+        rel physics:body0 = </World/BoxA>
+        rel physics:body1 = </World/BoxB>
+        # Enable distance limits
+        bool physics:minEnabled = true
+        bool physics:maxEnabled = true
+        float physics:minDistance = 50.0    # cm
+        float physics:maxDistance = 150.0
+    }
+}
