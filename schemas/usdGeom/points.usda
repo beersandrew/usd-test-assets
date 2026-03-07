@@ -1,0 +1,126 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+# UsdGeomPoints — a point cloud where each point has a position, optional width,
+#   optional color, and optional velocity for motion blur.
+# UsdGeomPointInstancer — efficiently instances arbitrary prims at each point
+#   with per-instance transforms, orientations, scales, and velocities.
+
+def Xform "World"
+{
+    # ── Simple point cloud ────────────────────────────────────────────────────
+    def Points "StarField"
+    {
+        point3f[] points = [
+            (0, 1, 2), (1.5, 0.5, 0), (-1, 2, 1),
+            (2, 0, -1), (-2, 1.5, -0.5), (0.5, -0.5, 1.5),
+            (-1.5, 0, 2.5), (1, 3, 0.5), (-0.5, 1, -2)
+        ]
+        # widths: diameter of each rendered point sprite.
+        float[] widths = [0.1, 0.15, 0.08, 0.12, 0.2, 0.09, 0.11, 0.07, 0.14] (
+            interpolation = "vertex"
+        )
+        # Per-point color stored as a displayColor primvar.
+        color3f[] primvars:displayColor = [
+            (1, 1, 0), (0.8, 0.9, 1), (1, 0.8, 0.6),
+            (0.9, 1, 0.9), (1, 1, 1), (0.7, 0.8, 1),
+            (1, 0.9, 0.7), (0.8, 1, 0.8), (1, 1, 0.8)
+        ] (
+            interpolation = "vertex"
+        )
+        # ids: stable identifiers — allows points to be tracked across frames.
+        int64[] ids = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+        # velocities for motion blur (one per point in stage-units/second).
+        vector3f[] velocities = [
+            (0, 0.1, 0), (-0.05, 0, 0.05), (0, 0.08, -0.02),
+            (0.1, 0, 0), (0, 0.05, 0.05), (-0.03, 0.03, 0),
+            (0, -0.05, 0.02), (0.02, 0, -0.04), (-0.01, 0.06, 0)
+        ]
+        float3[] extent = [(-2, -0.5, -2), (2, 3, 2.5)]
+        double3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    # ── PointInstancer: instances of a sphere scattered in a grid ─────────────
+    # The instancer references prototypes and places one at each point.
+    def PointInstancer "GrassField"
+    {
+        # protoIndices: index into prototypes[] per instance.
+        int[] protoIndices = [0, 1, 0, 1, 0, 0, 1, 0, 1]
+
+        # positions: one world-space position per instance.
+        point3f[] positions = [
+            (0, 0, 0), (1, 0, 0.5), (2, 0, 0),
+            (0, 0, 1), (1, 0, 1.5), (2, 0, 1),
+            (0, 0, 2), (1, 0, 2.5), (2, 0, 2)
+        ]
+
+        # orientations: per-instance rotation as a quaternion (w, x, y, z).
+        quath[] orientations = [
+            (1, 0, 0, 0), (0.9659, 0, 0.2588, 0), (1, 0, 0, 0),
+            (0.9659, 0, -0.2588, 0), (1, 0, 0, 0), (0.9659, 0, 0.2588, 0),
+            (1, 0, 0, 0), (0.9659, 0, -0.2588, 0), (1, 0, 0, 0)
+        ]
+
+        # scales: per-instance non-uniform scale.
+        float3[] scales = [
+            (1, 1, 1), (1, 1.2, 1), (1, 0.9, 1),
+            (1, 1.1, 1), (1, 1.3, 1), (1, 0.8, 1),
+            (1, 1, 1), (1, 1.15, 1), (1, 1.05, 1)
+        ]
+
+        # ids: stable per-instance IDs for tracking/deduplication.
+        int64[] ids = [10, 11, 12, 13, 14, 15, 16, 17, 18]
+
+        # velocities: for motion blur on moving instances.
+        vector3f[] velocities = [
+            (0, 0, 0), (0.01, 0, 0), (0, 0, 0),
+            (0, 0, 0.01), (0, 0, 0), (0, 0, -0.01),
+            (0, 0, 0), (-0.01, 0, 0), (0, 0, 0)
+        ]
+
+        # prototypes: the prim(s) to be instantiated.
+        rel prototypes = [
+            </World/GrassField/Prototypes/BladeThin>,
+            </World/GrassField/Prototypes/BladeWide>
+        ]
+
+        float3[] extent = [(-0.5, 0, -0.5), (2.5, 1.3, 2.5)]
+
+        def Scope "Prototypes"
+        {
+            # Prototype 0: a thin blade of grass (narrow cylinder).
+            def Cylinder "BladeThin" (
+                # Prototype prims should be inactive so they don't render directly.
+                instanceable = false
+                active = false
+            )
+            {
+                double height = 1.0
+                double radius = 0.04
+                uniform token axis = "Y"
+                float3[] extent = [(-0.04, -0.5, -0.04), (0.04, 0.5, 0.04)]
+            }
+
+            # Prototype 1: a wider blade.
+            def Cylinder "BladeWide" (
+                instanceable = false
+                active = false
+            )
+            {
+                double height = 1.0
+                double radius = 0.07
+                uniform token axis = "Y"
+                float3[] extent = [(-0.07, -0.5, -0.07), (0.07, 0.5, 0.07)]
+            }
+        }
+
+        double3 xformOp:translate = (6, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+}
