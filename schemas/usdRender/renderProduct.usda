@@ -1,0 +1,94 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+def Xform "World"
+{
+    # ── Multi-product render setup (stereo) ───────────────────────────────────
+    def RenderSettings "StereoRender"
+    {
+        int2 resolution = (3840, 1080)    # Side-by-side stereo
+        rel products = [
+            </World/StereoRender/LeftEye>,
+            </World/StereoRender/RightEye>
+        ]
+
+        # ── Left eye product ──────────────────────────────────────────────────
+        def RenderProduct "LeftEye"
+        {
+            token productName = "/renders/stereo/left.####.exr"
+            token productType = "raster"
+            rel camera = </World/LeftCamera>
+
+            rel orderedVars = [
+                </World/StereoRender/LeftEye/Beauty>,
+                </World/StereoRender/LeftEye/Depth>
+            ]
+
+            def RenderVar "Beauty"
+            {
+                token sourceName = "Ci"
+                token dataType = "color3f"
+                token sourceType = "raw"
+            }
+
+            def RenderVar "Depth"
+            {
+                token sourceName = "z"
+                token dataType = "float"
+                token sourceType = "raw"
+            }
+        }
+
+        # ── Right eye product ─────────────────────────────────────────────────
+        def RenderProduct "RightEye"
+        {
+            token productName = "/renders/stereo/right.####.exr"
+            token productType = "raster"
+            rel camera = </World/RightCamera>
+
+            rel orderedVars = [
+                </World/StereoRender/RightEye/Beauty>,
+                </World/StereoRender/RightEye/Depth>
+            ]
+
+            def RenderVar "Beauty"
+            {
+                token sourceName = "Ci"
+                token dataType = "color3f"
+                token sourceType = "raw"
+            }
+
+            def RenderVar "Depth"
+            {
+                token sourceName = "z"
+                token dataType = "float"
+                token sourceType = "raw"
+            }
+        }
+    }
+
+    # ── Stereo cameras ────────────────────────────────────────────────────────
+    def Camera "LeftCamera"
+    {
+        float focalLength = 50
+        float horizontalAperture = 36
+        float verticalAperture = 24
+        # Inter-ocular offset (3.2 cm = 32 mm separation)
+        double3 xformOp:translate = (-32, 150, 600)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    def Camera "RightCamera"
+    {
+        float focalLength = 50
+        float horizontalAperture = 36
+        float verticalAperture = 24
+        double3 xformOp:translate = (32, 150, 600)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+}
