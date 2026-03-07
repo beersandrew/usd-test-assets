@@ -1,0 +1,100 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+# UsdShadeShader: a single shading node with typed inputs and outputs.
+# UsdShadeNodeGraph: a container for shader networks, exposing interface inputs and outputs.
+# UsdShadeNodeDefAPI: declares shader identity (info:id, info:implementationSource).
+# UsdShadeConnectableAPI: manages input/output connectivity between shading nodes.
+
+def Xform "World"
+{
+    # ── NodeGraph: a self-contained PBR shader network ────────────────────────
+    # A NodeGraph groups shaders and exposes interface inputs to the outside world.
+    def NodeGraph "PbrNetwork" (
+        prepend apiSchemas = ["NodeDefAPI"]
+    )
+    {
+        # Interface inputs — these are the knobs exposed to a parent material or binding.
+        # Consumers connect to these rather than to the internal nodes directly.
+        float inputs:roughness = 0.4
+        color3f inputs:baseColor = (0.8, 0.3, 0.1)
+        float inputs:metallic = 0.0
+
+        # The network's final surface output (connected from the surface shader below).
+        token outputs:surface.connect = </World/PbrNetwork/SurfaceShader.outputs:surface>
+
+        # ── Surface shader node ───────────────────────────────────────────────
+        # info:id identifies the shader by its Sdr registry name.
+        def Shader "SurfaceShader" (
+            prepend apiSchemas = ["NodeDefAPI"]
+        )
+        {
+            uniform token info:id = "UsdPreviewSurface"
+            # info:implementationSource controls how renderers locate the implementation.
+            uniform token info:implementationSource = "id"
+
+            # Inputs wired to NodeGraph interface inputs via connection.
+            color3f inputs:diffuseColor.connect = </World/PbrNetwork.inputs:baseColor>
+            float inputs:roughness.connect = </World/PbrNetwork.inputs:roughness>
+            float inputs:metallic.connect = </World/PbrNetwork.inputs:metallic>
+
+            # Constant inputs (not promoted to the NodeGraph interface).
+            float inputs:specularColor = 1.0
+            float inputs:ior = 1.5          # index of refraction for dielectric materials
+            float inputs:opacity = 1.0
+            int inputs:useSpecularWorkflow = 0  # 0 = metallic/roughness, 1 = specular workflow
+
+            token outputs:surface
+            token outputs:displacement
+        }
+
+        # ── Texture coordinate reader ─────────────────────────────────────────
+        # Reads the UV primvar "st" from the geometry being shaded.
+        def Shader "TexCoordReader" (
+            prepend apiSchemas = ["NodeDefAPI"]
+        )
+        {
+            uniform token info:id = "UsdPrimvarReader_float2"
+            token inputs:varname = "st"     # primvar name to read from the mesh
+            float2 outputs:result
+        }
+
+        # ── Diffuse color texture ─────────────────────────────────────────────
+        def Shader "DiffuseTexture" (
+            prepend apiSchemas = ["NodeDefAPI"]
+        )
+        {
+            uniform token info:id = "UsdUVTexture"
+            asset inputs:file = @./textures/diffuse.png@
+            float2 inputs:st.connect = </World/PbrNetwork/TexCoordReader.outputs:result>
+            # wrapS / wrapT control UV boundary behaviour.
+            token inputs:wrapS = "repeat"
+            token inputs:wrapT = "repeat"
+            # sourceColorSpace tells the renderer the file's encoding.
+            token inputs:sourceColorSpace = "sRGB"
+            float4 inputs:scale = (1, 1, 1, 1)
+            float4 inputs:bias = (0, 0, 0, 0)
+            color3f outputs:rgb
+            float outputs:a
+        }
+
+        # ── Roughness texture ─────────────────────────────────────────────────
+        def Shader "RoughnessTexture" (
+            prepend apiSchemas = ["NodeDefAPI"]
+        )
+        {
+            uniform token info:id = "UsdUVTexture"
+            asset inputs:file = @./textures/roughness.png@
+            float2 inputs:st.connect = </World/PbrNetwork/TexCoordReader.outputs:result>
+            token inputs:wrapS = "repeat"
+            token inputs:wrapT = "repeat"
+            token inputs:sourceColorSpace = "raw"   # linear — roughness is not a color
+            float outputs:r
+        }
+    }
+}
