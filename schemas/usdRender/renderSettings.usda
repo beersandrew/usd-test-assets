@@ -1,0 +1,137 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+def Xform "World"
+{
+    # ── RenderSettings: top-level render configuration ────────────────────────
+    # UsdRenderSettings is the root prim that aggregates all render config.
+    # It references the camera, resolution, and render products.
+    def RenderSettings "RenderSettings"
+    {
+        # Camera to render from
+        rel camera = </World/Camera>
+
+        # Output resolution in pixels
+        int2 resolution = (1920, 1080)
+
+        # Pixel aspect ratio
+        float pixelAspectRatio = 1.0
+
+        # Aspect ratio policy when window doesn't match film
+        # "adjustApertureWidth" / "adjustApertureHeight" / "adjustPixelAspectRatio" / "cropOrdered"
+        token aspectRatioConformPolicy = "expandAperture"
+
+        # Data window: sub-region of the full resolution to render
+        # Normalized [0,1]: (xMin, yMin, xMax, yMax)
+        float4 dataWindowNDC = (0, 0, 1, 1)
+
+        # Instantaneous shutter (no motion blur) or shutter interval
+        bool instantaneousShutter = false
+        float2 shutterInterval = (0.0, 0.5)
+
+        # Render products to generate
+        rel products = [</World/RenderSettings/Beauty>, </World/RenderSettings/AOVs>]
+
+        # Included collections for rendering (empty = render everything)
+        # rel includedPurposes = ...
+
+        def RenderProduct "Beauty"
+        {
+            # Output file path (use # for frame number padding)
+            token productName = "/renders/beauty/beauty.####.exr"
+
+            # Type: "raster" (default) or "deep"
+            token productType = "raster"
+
+            # Camera override (inherits from RenderSettings if not set)
+            rel camera = </World/Camera>
+
+            # AOV outputs included in this product
+            rel orderedVars = [
+                </World/RenderSettings/Beauty/Ci>,
+                </World/RenderSettings/Beauty/Alpha>
+            ]
+
+            def RenderVar "Ci"
+            {
+                # Source AOV name from the renderer
+                token sourceName = "Ci"
+                # Data type: "color3f", "float", "int", etc.
+                token dataType = "color3f"
+                # Source type: "raw" or "lpe"
+                token sourceType = "raw"
+            }
+
+            def RenderVar "Alpha"
+            {
+                token sourceName = "a"
+                token dataType = "float"
+                token sourceType = "raw"
+            }
+        }
+
+        def RenderProduct "AOVs"
+        {
+            token productName = "/renders/aovs/aov.####.exr"
+            token productType = "raster"
+
+            rel orderedVars = [
+                </World/RenderSettings/AOVs/Diffuse>,
+                </World/RenderSettings/AOVs/Specular>,
+                </World/RenderSettings/AOVs/Normal>,
+                </World/RenderSettings/AOVs/Z>
+            ]
+
+            # ── Diffuse AOV ───────────────────────────────────────────────────
+            def RenderVar "Diffuse"
+            {
+                token sourceName = "diffuse"
+                token dataType = "color3f"
+                token sourceType = "raw"
+                string format = "float"
+            }
+
+            # ── Specular AOV ──────────────────────────────────────────────────
+            def RenderVar "Specular"
+            {
+                token sourceName = "specular"
+                token dataType = "color3f"
+                token sourceType = "raw"
+            }
+
+            # ── World-space normal AOV ────────────────────────────────────────
+            def RenderVar "Normal"
+            {
+                token sourceName = "Nn"
+                token dataType = "normal3f"
+                token sourceType = "raw"
+            }
+
+            # ── Depth (Z) AOV ─────────────────────────────────────────────────
+            def RenderVar "Z"
+            {
+                token sourceName = "z"
+                token dataType = "float"
+                token sourceType = "raw"
+            }
+        }
+    }
+
+    # ── Reference camera ──────────────────────────────────────────────────────
+    def Camera "Camera"
+    {
+        float2 clippingRange = (1, 10000)
+        float focalLength = 50
+        float focusDistance = 500
+        float fStop = 5.6
+        float horizontalAperture = 36
+        float verticalAperture = 24
+        double3 xformOp:translate = (0, 150, 600)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+}
