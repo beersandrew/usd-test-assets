@@ -1,0 +1,81 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+def Xform "World"
+{
+    # ── HydraGenerativeProceduralAPI applied to a GenerativeProcedural ─────────
+    # UsdHydraGenerativeProceduralAPI extends UsdProcGenerativeProcedural by
+    # adding Hydra-specific attributes for scene index plugin evaluation.
+    #
+    # The API adds:
+    #   hydra:proceduralType   — identifies the Hydra scene index plugin
+    #   hydra:proceduralSystem — (inherited from usdProc) selects the system
+
+    # ── Hydra-evaluated scatter procedural ─────────────────────────────────────
+    def GenerativeProcedural "HydraScatter" (
+        prepend apiSchemas = ["HydraGenerativeProceduralAPI"]
+    )
+    {
+        # proceduralSystem: selects the procedural evaluation system
+        # "hydra" routes to the Hydra scene index plugin pipeline
+        uniform token proceduralSystem = "hydra"
+
+        # hydra:proceduralType: identifies the specific Hydra plugin/type
+        # This token must match a registered Hydra scene index plugin.
+        uniform token hydra:proceduralType = "HdScatterProceduralPlugin"
+
+        # ── Custom procedural inputs in the primvars:args namespace ───────────
+        # These are passed verbatim to the Hydra scene index plugin.
+
+        # Asset to scatter across the surface
+        custom asset primvars:args:sourceAsset = @./assets/tree.usd@
+
+        # Number of instances to generate
+        custom int primvars:args:instanceCount = 1000
+
+        # Random seed for deterministic placement
+        custom int primvars:args:seed = 7
+
+        # Bounding box for scatter placement
+        custom float2 primvars:args:boundsMin = (-500, -500)
+        custom float2 primvars:args:boundsMax = (500, 500)
+
+        # Scale variation range (min, max)
+        custom float2 primvars:args:scaleRange = (0.8, 1.5)
+
+        # Align instances to terrain normal
+        custom bool primvars:args:alignToNormal = true
+
+        double3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    # ── Hydra-evaluated terrain procedural ────────────────────────────────────
+    def GenerativeProcedural "HydraTerrain" (
+        prepend apiSchemas = ["HydraGenerativeProceduralAPI"]
+    )
+    {
+        uniform token proceduralSystem = "hydra"
+        uniform token hydra:proceduralType = "HdTerrainProceduralPlugin"
+
+        # Heightmap texture driving terrain elevation
+        custom asset primvars:args:heightmap = @./textures/terrain_height.exr@
+
+        # Terrain patch size in scene units
+        custom float primvars:args:patchSize = 1000.0
+
+        # Maximum terrain height
+        custom float primvars:args:maxHeight = 200.0
+
+        # Subdivision level for LOD
+        custom int primvars:args:subdivisionLevel = 6
+
+        # Material to apply to generated terrain mesh
+        custom asset primvars:args:material = @./materials/terrain.usda@
+    }
+}
