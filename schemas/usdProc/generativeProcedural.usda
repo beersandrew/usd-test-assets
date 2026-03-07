@@ -1,0 +1,80 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+# UsdProcGenerativeProcedural: abstract base schema for procedural prims that are
+# evaluated by an external procedural system (e.g. Hydra, a renderer plugin).
+#
+# Because it is abstract, it must be subclassed with a concrete type token.
+# The subclass is identified at runtime by the value of `proceduralSystem`.
+#
+# Key attributes:
+#   proceduralSystem   — token identifying which system evaluates this prim
+#   primvars:args:*    — custom inputs passed to the procedural at evaluation time
+
+def Xform "World"
+{
+    # ── Hydra-based scatter procedural ────────────────────────────────────────
+    # "GenerativeProcedural" is the concrete type token for UsdProcGenerativeProcedural.
+    def GenerativeProcedural "ScatterRocks"
+    {
+        # proceduralSystem selects which Hydra scene index plugin will evaluate
+        # this prim. The value must match a registered plugin token.
+        uniform token proceduralSystem = "hydra"
+
+        # ── Custom procedural arguments in the primvars:args namespace ─────────
+        # primvars:args:* attributes are forwarded verbatim to the procedural.
+
+        # Seed for deterministic random scatter placement.
+        custom int primvars:args:seed = 42
+
+        # Number of rock instances to scatter across the surface.
+        custom int primvars:args:instanceCount = 500
+
+        # Asset reference for the rock geometry library.
+        custom asset primvars:args:geometryLibrary = @./assets/rocks.usd@
+
+        # Bounding region for scatter placement (min X/Z, max X/Z in local space).
+        custom float2 primvars:args:scatterBoundsMin = (-10, -10)
+        custom float2 primvars:args:scatterBoundsMax = (10, 10)
+
+        # Uniform scale range applied randomly to each scattered instance.
+        custom float2 primvars:args:scaleRange = (0.5, 2.0)
+
+        # Y-axis rotation range (degrees) applied randomly per instance.
+        custom float2 primvars:args:rotationRange = (0, 360)
+
+        # Place the procedural at the origin; the scatter is in local space.
+        double3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    # ── Crowd simulation procedural ────────────────────────────────────────────
+    def GenerativeProcedural "CrowdSim"
+    {
+        # Uses a custom renderer-side crowd evaluation plugin.
+        uniform token proceduralSystem = "crowdSim"
+
+        # Path to the animation clip library for agent characters.
+        custom asset primvars:args:agentLibrary = @./assets/agents.usd@
+
+        # Total number of agents to spawn.
+        custom int primvars:args:agentCount = 200
+
+        # Radius of the circular area agents are seeded into.
+        custom float primvars:args:spawnRadius = 20.0
+
+        # Goal target all agents move toward (world-space position).
+        custom float3 primvars:args:goalPosition = (0, 0, 0)
+
+        # Simulated playback speed multiplier (1.0 = real-time).
+        custom float primvars:args:timeScale = 1.0
+
+        double3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+}
