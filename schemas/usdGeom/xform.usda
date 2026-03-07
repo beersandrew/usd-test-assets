@@ -1,0 +1,95 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+# UsdGeomXform: a prim that carries transform operations (translate, rotate, scale).
+# UsdGeomScope: a lightweight grouping prim with no transform of its own.
+# UsdGeomXformCommonAPI: a convenience API for the common TRS (translate/rotate/scale) decomposition.
+
+def Xform "World"
+{
+    # Xform with an animated translation (bouncing ball path)
+    def Xform "AnimatedXform"
+    {
+        # xformOp:translate and xformOp:rotateXYZ are ordered by xformOpOrder
+        double3 xformOp:translate = (0, 0, 0)
+        double3 xformOp:translate.timeSamples = {
+            0: (0, 0, 0),
+            12: (5, 3, 0),
+            24: (10, 0, 0),
+        }
+        float3 xformOp:rotateXYZ = (0, 0, 0)
+        float3 xformOp:rotateXYZ.timeSamples = {
+            0: (0, 0, 0),
+            24: (0, 180, 0),
+        }
+        double3 xformOp:scale = (1, 1, 1)
+        # xformOpOrder lists ops in application order (innermost first in math, left-to-right here)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+    }
+
+    # Scope is the lightest grouping prim — no transform, just a namespace container.
+    def Scope "Props"
+    {
+        # A static Xform with a pivot-based rotation
+        def Xform "PivotedBox" (
+            prepend apiSchemas = ["XformCommonAPI"]
+        )
+        {
+            # XformCommonAPI exposes the standard TRS attributes in a predictable layout.
+            double3 xformOp:translate = (2, 0, -3)
+            float3 xformOp:rotateXYZ = (0, 45, 0)   # 45-degree Y rotation
+            float3 xformOp:scale = (1.5, 1.5, 1.5)
+            # Pivot point for rotation/scale — shifted to the corner of the box
+            double3 xformOp:translate:pivot = (0.5, 0.5, 0.5)
+            uniform token[] xformOpOrder = [
+                "xformOp:translate",
+                "xformOp:translate:pivot",
+                "xformOp:rotateXYZ",
+                "xformOp:scale",
+                "!invert!xformOp:translate:pivot",
+            ]
+        }
+
+        # Nested Xforms: parent transform concatenates with children
+        def Xform "Vehicle"
+        {
+            double3 xformOp:translate = (0, 0, 5)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+
+            def Xform "Wheel_FL"
+            {
+                # Local offset from vehicle origin
+                double3 xformOp:translate = (-1, 0, 1)
+                float xformOp:rotateY = 0
+                float xformOp:rotateY.timeSamples = {
+                    0: 0,
+                    24: 720,   # two full spins per second
+                }
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateY"]
+            }
+
+            def Xform "Wheel_FR"
+            {
+                double3 xformOp:translate = (1, 0, 1)
+                float xformOp:rotateY = 0
+                float xformOp:rotateY.timeSamples = {
+                    0: 0,
+                    24: 720,
+                }
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateY"]
+            }
+        }
+    }
+
+    # resetXformStack — stops inheriting parent transform (useful for world-space placement)
+    def Xform "WorldSpaceMarker"
+    {
+        double3 xformOp:translate = (100, 0, 0)
+        uniform token[] xformOpOrder = ["!resetXformStack!", "xformOp:translate"]
+    }
+}

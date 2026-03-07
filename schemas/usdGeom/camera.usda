@@ -1,0 +1,93 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+# UsdGeomCamera — a physical camera prim with realistic lens attributes.
+# All camera measurements use USD's native unit (centimeters at metersPerUnit=0.01).
+
+def Xform "World"
+{
+    # ── Perspective camera with standard 35mm lens settings ───────────────────
+    def Camera "PerspectiveCamera"
+    {
+        # projection: "perspective" for standard 3D renders, "orthographic" for tech views.
+        token projection = "perspective"
+
+        # focalLength in scene units (cm). 50mm lens = 5.0 scene-cm.
+        float focalLength = 5.0
+
+        # horizontalAperture and verticalAperture match the physical film back (mm → cm).
+        # 35mm full frame: 36mm wide x 24mm tall.
+        float horizontalAperture = 3.6
+        float verticalAperture = 2.4
+
+        # horizontalApertureOffset/verticalApertureOffset: off-center lens shift.
+        float horizontalApertureOffset = 0
+        float verticalApertureOffset = 0
+
+        # clippingRange: near and far clip distances in scene units.
+        float2 clippingRange = (0.1, 10000)
+
+        # fStop: lens aperture ratio — smaller = more depth of field blur.
+        float fStop = 2.8
+
+        # focusDistance: distance to the plane of perfect focus (scene units).
+        float focusDistance = 500.0
+
+        # Animate the camera along a dolly path.
+        double3 xformOp:translate = (0, 5, 20)
+        double3 xformOp:translate.timeSamples = {
+            0:  (0, 5, 20),
+            12: (5, 5, 15),
+            24: (10, 5, 10),
+        }
+        float3 xformOp:rotateXYZ = (-10, 0, 0)
+        float3 xformOp:rotateXYZ.timeSamples = {
+            0:  (-10, 0, 0),
+            12: (-10, -20, 0),
+            24: (-15, -45, 0),
+        }
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+    }
+
+    # ── Orthographic camera (engineering / schematic view) ────────────────────
+    def Camera "OrthographicCamera"
+    {
+        token projection = "orthographic"
+        # For orthographic cameras, aperture defines the frustum width/height directly.
+        float horizontalAperture = 20.0   # 20 scene-units wide
+        float verticalAperture = 15.0
+        float focalLength = 5.0           # still required but does not affect FOV
+        float2 clippingRange = (0.1, 5000)
+        double3 xformOp:translate = (0, 50, 0)
+        # Look straight down (top-down view).
+        float3 xformOp:rotateXYZ = (-90, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+    }
+
+    # ── Anamorphic lens camera (wider horizontal aperture) ────────────────────
+    def Camera "AnamorphicCamera"
+    {
+        token projection = "perspective"
+        float focalLength = 5.0
+        # 2x anamorphic: horizontal aperture is double the standard.
+        float horizontalAperture = 4.8    # 48mm horizontal
+        float verticalAperture = 2.4      # 24mm vertical (standard)
+        float2 clippingRange = (0.1, 10000)
+        float fStop = 1.4                 # wide aperture for cinematic look
+        float focusDistance = 800.0
+        # Stereo convergence / stereo role can be added for stereo rigs.
+        float stereoRole = 0              # 0 = mono
+
+        # Clipping planes (arbitrary oriented planes in camera space).
+        float4[] clippingPlanes = []      # empty — no custom clip planes
+
+        double3 xformOp:translate = (20, 5, 20)
+        float3 xformOp:rotateXYZ = (-5, -45, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+    }
+}

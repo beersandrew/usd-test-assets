@@ -1,0 +1,125 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+# UsdGeomMesh — polygon mesh and subdivision surface variants.
+# A Mesh stores explicit vertex positions and face topology.
+
+def Xform "World"
+{
+    # ── Simple polygon mesh (no subdivision) ─────────────────────────────────
+    # A unit cube built from 6 quads.
+    def Mesh "PolyMeshCube"
+    {
+        # faceVertexCounts: number of vertices per face (6 quads).
+        int[] faceVertexCounts = [4, 4, 4, 4, 4, 4]
+        # faceVertexIndices: index into points[] for each vertex of each face.
+        int[] faceVertexIndices = [
+            0, 1, 3, 2,   # -Z face
+            4, 6, 7, 5,   # +Z face
+            0, 4, 5, 1,   # -Y face
+            2, 3, 7, 6,   # +Y face
+            0, 2, 6, 4,   # -X face
+            1, 5, 7, 3    # +X face
+        ]
+        point3f[] points = [
+            (-1, -1, -1), ( 1, -1, -1),
+            (-1,  1, -1), ( 1,  1, -1),
+            (-1, -1,  1), ( 1, -1,  1),
+            (-1,  1,  1), ( 1,  1,  1)
+        ]
+        # Per-vertex normals, interpolated across each face.
+        normal3f[] normals = [
+            (0, 0, -1), (0, 0, -1), (0, 0, -1), (0, 0, -1),
+            (0, 0,  1), (0, 0,  1), (0, 0,  1), (0, 0,  1),
+            (0, -1, 0), (0, -1, 0), (0, -1, 0), (0, -1, 0),
+            (0,  1, 0), (0,  1, 0), (0,  1, 0), (0,  1, 0),
+            (-1, 0, 0), (-1, 0, 0), (-1, 0, 0), (-1, 0, 0),
+            ( 1, 0, 0), ( 1, 0, 0), ( 1, 0, 0), ( 1, 0, 0)
+        ] (
+            # faceVarying: one value per face-vertex (corner of each polygon).
+            interpolation = "faceVarying"
+        )
+        # UV texture coordinates stored as a primvar.
+        texCoord2f[] primvars:st = [
+            (0, 0), (1, 0), (1, 1), (0, 1),
+            (0, 0), (1, 0), (1, 1), (0, 1),
+            (0, 0), (1, 0), (1, 1), (0, 1),
+            (0, 0), (1, 0), (1, 1), (0, 1),
+            (0, 0), (1, 0), (1, 1), (0, 1),
+            (0, 0), (1, 0), (1, 1), (0, 1)
+        ] (
+            interpolation = "faceVarying"
+        )
+        float3[] extent = [(-1, -1, -1), (1, 1, 1)]
+        # subdivisionScheme "none" means no subdivision — render as polygons.
+        uniform token subdivisionScheme = "none"
+        double3 xformOp:translate = (-4, 1, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    # ── Catmull-Clark subdivision surface ─────────────────────────────────────
+    # The same cube topology, but rendered as a smooth subdivision surface.
+    def Mesh "SubdivCube"
+    {
+        int[] faceVertexCounts = [4, 4, 4, 4, 4, 4]
+        int[] faceVertexIndices = [
+            0, 1, 3, 2,
+            4, 6, 7, 5,
+            0, 4, 5, 1,
+            2, 3, 7, 6,
+            0, 2, 6, 4,
+            1, 5, 7, 3
+        ]
+        point3f[] points = [
+            (-1, -1, -1), ( 1, -1, -1),
+            (-1,  1, -1), ( 1,  1, -1),
+            (-1, -1,  1), ( 1, -1,  1),
+            (-1,  1,  1), ( 1,  1,  1)
+        ]
+        float3[] extent = [(-1, -1, -1), (1, 1, 1)]
+        # Catmull-Clark produces a smooth surface from the control cage.
+        uniform token subdivisionScheme = "catmullClark"
+        # interpolateBoundary controls how boundary edges are handled.
+        uniform token interpolateBoundary = "edgeAndCorner"
+        # Crease sharpness: edge 4-0 is creased to sharpness 5 (nearly sharp).
+        int[] creaseIndices = [4, 0]
+        int[] creaseLengths = [2]
+        float[] creaseSharpnesses = [5.0]   # 10 = infinitely sharp
+        double3 xformOp:translate = (0, 1, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    # ── Animated mesh (deforming triangle strip) ──────────────────────────────
+    def Mesh "WavyPlane"
+    {
+        int[] faceVertexCounts = [4, 4, 4, 4]
+        int[] faceVertexIndices = [0, 1, 4, 3,  1, 2, 5, 4,  3, 4, 7, 6,  4, 5, 8, 7]
+        # points animate over time — a rippling 3x3 grid.
+        point3f[] points = [
+            (-2, 0, -2), (0, 0, -2), (2, 0, -2),
+            (-2, 0,  0), (0, 0,  0), (2, 0,  0),
+            (-2, 0,  2), (0, 0,  2), (2, 0,  2)
+        ]
+        point3f[] points.timeSamples = {
+            0:  [(-2, 0, -2), (0, 0.5, -2), (2, 0, -2),
+                 (-2, 0,  0), (0, 0,    0), (2, 0,  0),
+                 (-2, 0,  2), (0,-0.5,  2), (2, 0,  2)],
+            12: [(-2, 0.5, -2), (0, 0, -2), (2, 0.5, -2),
+                 (-2, 0,    0), (0, 0,   0), (2, 0,    0),
+                 (-2,-0.5,  2), (0, 0,   2), (2,-0.5,  2)],
+            24: [(-2, 0, -2), (0, 0.5, -2), (2, 0, -2),
+                 (-2, 0,  0), (0, 0,    0), (2, 0,  0),
+                 (-2, 0,  2), (0,-0.5,  2), (2, 0,  2)],
+        }
+        float3[] extent = [(-2, -0.5, -2), (2, 0.5, 2)]
+        uniform token subdivisionScheme = "none"
+        uniform bool doubleSided = 1
+        double3 xformOp:translate = (6, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+}
