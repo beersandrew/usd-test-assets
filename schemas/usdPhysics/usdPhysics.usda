@@ -1,0 +1,10 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    doc = "UsdPhysics overview: rigid bodies, collision, joints, articulations"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+def Xform "World" {}
