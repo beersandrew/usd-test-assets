@@ -1,0 +1,13 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    doc = "UsdLux overview: punctual lights, environment lights, geometry lights, shaping, shadows, filters"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+    subLayers = [
+        @./punctualLights.usda@,
+        @./envLights.usda@,
+        @./shapingAndShadow.usda@
+    ]
+)
