@@ -1,0 +1,61 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+# UI Hints are metadata stored on prims and attributes to guide DCC tools.
+# They are not applied API schemas but rather metadata conventions.
+
+def Xform "World"
+{
+    # ── ObjectHints — hints on the prim/object level ──────────────────────────
+    def Xform "Vehicle" (
+        # displayName: friendly label shown in the UI instead of the prim name
+        displayName = "Sports Vehicle"
+        # doc: shown as a tooltip or description in the UI
+        doc = "A high-performance vehicle asset for scene population."
+        # Arbitrary custom metadata used as UI hints
+        customData = {
+            bool uiHidden = false
+            string uiGroup = "Vehicles"
+            int uiOrder = 1
+        }
+    )
+    {
+        # ── PrimHints — additional prim-level display metadata ────────────────
+        # hide/show in UI, icon, color coding etc. stored in customData
+
+        # ── PropertyHints — hints on individual attributes ────────────────────
+        # displayName, displayGroup, doc, hidden, and uiOrder on attributes
+        float suspensionStiffness = 0.8 (
+            displayName = "Suspension Stiffness"
+            displayGroup = "Suspension"
+            doc = "Controls how stiff the suspension springs are (0=soft, 1=rigid)."
+            customData = {
+                float uiMin = 0.0
+                float uiMax = 1.0
+                float uiSoftMin = 0.1
+                float uiSoftMax = 0.9
+            }
+        )
+
+        # ── AttributeHints — type-specific hints on attribute values ──────────
+        color3f bodyColor = (0.8, 0.1, 0.1) (
+            displayName = "Body Color"
+            displayGroup = "Appearance"
+            doc = "Primary paint color of the vehicle body."
+        )
+
+        int wheelCount = 4 (
+            displayName = "Wheel Count"
+            displayGroup = "Geometry"
+            customData = {
+                int uiMin = 2
+                int uiMax = 8
+            }
+        )
+    }
+}
