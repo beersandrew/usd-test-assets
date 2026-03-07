@@ -1,0 +1,122 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+# UsdShadeMaterial: a prim that aggregates shader outputs for surface, displacement, and volume.
+# UsdShadeMaterialBindingAPI: applied to geometry prims to bind a material (direct or collection-based).
+
+def Xform "World"
+{
+    # ── Material library ──────────────────────────────────────────────────────
+    def Scope "Materials"
+    {
+        # A fully-specified PBR material with surface and displacement outputs.
+        def Material "RedPlastic" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            # material:binding:surface / displacement outputs route to renderers.
+            token outputs:surface.connect = </World/Materials/RedPlastic/PbrSurface.outputs:surface>
+            token outputs:displacement.connect = </World/Materials/RedPlastic/PbrSurface.outputs:displacement>
+
+            def Shader "PbrSurface" (
+                prepend apiSchemas = ["NodeDefAPI"]
+            )
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (0.9, 0.1, 0.05)   # vivid red
+                float inputs:roughness = 0.25                      # polished plastic feel
+                float inputs:metallic = 0.0
+                float inputs:ior = 1.46                            # polystyrene IOR
+                float inputs:opacity = 1.0
+                token outputs:surface
+                token outputs:displacement
+            }
+        }
+
+        # A metallic gold material demonstrating the specular workflow.
+        def Material "BrushedGold"
+        {
+            token outputs:surface.connect = </World/Materials/BrushedGold/GoldSurface.outputs:surface>
+
+            def Shader "GoldSurface" (
+                prepend apiSchemas = ["NodeDefAPI"]
+            )
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (1.0, 0.765, 0.336)  # gold albedo
+                float inputs:roughness = 0.35                        # brushed — not mirror-like
+                float inputs:metallic = 1.0                          # fully metallic
+                float inputs:ior = 0.47                              # gold complex IOR (n)
+                token outputs:surface
+            }
+        }
+
+        # A glass material — high IOR, low roughness, opacity near zero for transmission.
+        def Material "ClearGlass"
+        {
+            token outputs:surface.connect = </World/Materials/ClearGlass/GlassSurface.outputs:surface>
+
+            def Shader "GlassSurface" (
+                prepend apiSchemas = ["NodeDefAPI"]
+            )
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (0.9, 0.95, 1.0)   # faint blue tint
+                float inputs:roughness = 0.02                      # near-perfect glass
+                float inputs:metallic = 0.0
+                float inputs:ior = 1.52                            # borosilicate glass
+                float inputs:opacity = 0.05                        # nearly transparent
+                int inputs:useSpecularWorkflow = 0
+                token outputs:surface
+            }
+        }
+    }
+
+    # ── Geometry with material bindings ───────────────────────────────────────
+    def Scope "Props"
+    {
+        # Direct material binding via MaterialBindingAPI.
+        def Sphere "PlasticBall" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            double radius = 1.0
+            float3[] extent = [(-1, -1, -1), (1, 1, 1)]
+            double3 xformOp:translate = (0, 1, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+            # material:binding is the default binding — used when no purpose is specified.
+            rel material:binding = </World/Materials/RedPlastic>
+        }
+
+        def Cube "GoldBlock" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            double size = 2.0
+            float3[] extent = [(-1, -1, -1), (1, 1, 1)]
+            double3 xformOp:translate = (4, 1, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+            rel material:binding = </World/Materials/BrushedGold>
+        }
+
+        # Preview-purpose binding overrides the full binding for viewport display.
+        def Sphere "GlassOrb" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            double radius = 0.8
+            float3[] extent = [(-0.8, -0.8, -0.8), (0.8, 0.8, 0.8)]
+            double3 xformOp:translate = (8, 0.8, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+            # Full binding used by offline renderers.
+            rel material:binding = </World/Materials/ClearGlass>
+            # Preview binding used by fast interactive viewers.
+            rel material:binding:preview = </World/Materials/RedPlastic>
+        }
+    }
+}
