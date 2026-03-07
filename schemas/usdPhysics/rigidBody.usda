@@ -1,0 +1,67 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+def Xform "World"
+{
+    # ── Physics Scene: global physics settings ────────────────────────────────
+    def PhysicsScene "PhysicsScene"
+    {
+        # Gravity vector (Y-up, 9.81 m/s²)
+        vector3f physics:gravityDirection = (0, -1, 0)
+        float physics:gravityMagnitude = 981.0    # cm/s² (scene is in cm)
+    }
+
+    # ── Ground plane ──────────────────────────────────────────────────────────
+    def Plane "Ground" (
+        prepend apiSchemas = ["PhysicsCollisionAPI"]
+    )
+    {
+        uniform token physics:axis = "Y"
+    }
+
+    # ── Rigid body cube ───────────────────────────────────────────────────────
+    def Cube "RigidBox" (
+        prepend apiSchemas = ["PhysicsRigidBodyAPI", "PhysicsMassAPI", "PhysicsCollisionAPI"]
+    )
+    {
+        double size = 50.0
+
+        # RigidBodyAPI: enables rigid body dynamics simulation
+        bool physics:rigidBodyEnabled = true
+        # Initial linear velocity (cm/s)
+        vector3f physics:velocity = (0, 0, 0)
+        # Initial angular velocity (rad/s)
+        vector3f physics:angularVelocity = (0, 0, 0)
+        # Allow the solver to put this body to sleep for performance
+        bool physics:startAsleep = false
+
+        # MassAPI: mass properties
+        float physics:mass = 5.0            # kg (5 kg box)
+        vector3f physics:centerOfMass = (0, 0, 0)
+        # Diagonal of the inertia tensor (kg·cm²)
+        vector3f physics:diagonalInertia = (833.0, 833.0, 833.0)
+        float physics:density = 0.004       # kg/cm³ (density if mass not set)
+
+        double3 xformOp:translate = (0, 200, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    # ── Physics material (friction, restitution) ──────────────────────────────
+    def Material "RubberMaterial" (
+        prepend apiSchemas = ["PhysicsMaterialAPI"]
+    )
+    {
+        # Static and dynamic friction coefficients
+        float physics:staticFriction = 0.8
+        float physics:dynamicFriction = 0.6
+        # Coefficient of restitution (bounciness): 0=no bounce, 1=perfect bounce
+        float physics:restitution = 0.3
+        # Density used if PhysicsMassAPI is not applied
+        float physics:density = 0.001      # kg/cm³
+    }
+}
