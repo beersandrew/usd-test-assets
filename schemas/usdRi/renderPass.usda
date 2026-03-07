@@ -1,0 +1,59 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+def Xform "World"
+{
+    # ── UsdRiRenderPassAPI ─────────────────────────────────────────────────────
+    # Controls per-object camera visibility and matte behavior in RenderMan.
+    # Applied to geometry prims to override their render visibility.
+
+    # Hero character: fully visible, casts shadows
+    def Xform "HeroCharacter" (
+        prepend apiSchemas = ["RiRenderPassAPI"]
+    )
+    {
+        # cameraVisibility: which cameras can see this object
+        # Primary camera sees hero
+        rel ri:renderPass:cameraVisibility = [</World/PrimaryCamera>]
+
+        def Mesh "Body"
+        {
+            int[] faceVertexCounts = [4]
+            int[] faceVertexIndices = [0, 1, 2, 3]
+            point3f[] points = [(-30, 0, -15), (30, 0, -15), (30, 180, -15), (-30, 180, -15)]
+        }
+    }
+
+    # Background element: matte object (catches shadows only)
+    def Mesh "BackdropFloor" (
+        prepend apiSchemas = ["RiRenderPassAPI", "StatementsAPI"]
+    )
+    {
+        int[] faceVertexCounts = [4]
+        int[] faceVertexIndices = [0, 1, 2, 3]
+        point3f[] points = [(-500, 0, -500), (500, 0, -500), (500, 0, 500), (-500, 0, 500)]
+
+        # matteObject: renders as a matte (alpha=0 where shadow falls)
+        # Useful for compositing CG over live-action plates
+        bool ri:attributes:Ri:Matte = 1
+
+        # Only shadows are visible; direct shading is suppressed
+        int ri:attributes:visibility:camera = 0
+        int ri:attributes:visibility:diffuse = 0
+        int ri:attributes:visibility:specular = 0
+    }
+
+    def Camera "PrimaryCamera"
+    {
+        float focalLength = 50
+        float horizontalAperture = 36
+        float verticalAperture = 24
+        double3 xformOp:translate = (0, 120, 600)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+}

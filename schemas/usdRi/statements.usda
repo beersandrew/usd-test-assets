@@ -1,0 +1,67 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+def Xform "World"
+{
+    # ── UsdRiStatementsAPI ─────────────────────────────────────────────────────
+    # Stores RenderMan RI attributes in the ri: namespace.
+    # These are passed directly to the RenderMan renderer as RIB attributes.
+    # Applied to any prim to add RenderMan-specific rendering properties.
+
+    def Mesh "RenderManMesh" (
+        prepend apiSchemas = ["StatementsAPI"]
+    )
+    {
+        int[] faceVertexCounts = [4]
+        int[] faceVertexIndices = [0, 1, 2, 3]
+        point3f[] points = [(-50, 0, -50), (50, 0, -50), (50, 0, 50), (-50, 0, 50)]
+
+        # ── RI attributes in the ri: namespace ────────────────────────────────
+
+        # Trace attributes: control ray tracing behavior
+        int ri:attributes:trace:maxdiffusedepth = 2
+        int ri:attributes:trace:maxspeculardepth = 4
+        bool ri:attributes:trace:autobias = 1
+        float ri:attributes:trace:bias = 0.01
+
+        # Geometry attributes: subdivision and dicing
+        token ri:attributes:Ri:Orientation = "outside"
+        float ri:attributes:Ri:ShadingRate = 1.0
+
+        # Visibility attributes: control what rays hit this prim
+        int ri:attributes:visibility:camera = 1
+        int ri:attributes:visibility:diffuse = 1
+        int ri:attributes:visibility:specular = 1
+        int ri:attributes:visibility:transmission = 1
+        int ri:attributes:visibility:photon = 1
+
+        # Identifier: user-visible label in render stats
+        string ri:attributes:identifier:name = "GroundPlane"
+
+        # Coordinate systems: named coordinate frames for shading
+        # ri:coordinateSystem marks this prim as defining a named coord system
+        string ri:coordinateSystem = "groundPlaneCS"
+    }
+
+    # ── Object with motion blur RI attributes ─────────────────────────────────
+    def Sphere "BlurrySphere" (
+        prepend apiSchemas = ["StatementsAPI"]
+    )
+    {
+        double radius = 50
+
+        # Motion blur quality
+        int ri:attributes:Ri:GeometricApproximation:motionFactor = 1
+
+        # Shading interpolation mode
+        token ri:attributes:Ri:Interpolateboundary = "edgeAndCorner"
+
+        double3 xformOp:translate = (0, 50, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+}
