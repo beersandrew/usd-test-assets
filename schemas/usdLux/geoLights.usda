@@ -1,0 +1,45 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+def Xform "World"
+{
+    def Mesh "EmissivePanel"
+    {
+        # MeshLightAPI: turn any mesh into an area light
+        # Applied as an API schema
+    }
+
+    def Xform "EmissivePanelLight" (
+        prepend apiSchemas = ["MeshLightAPI"]
+    )
+    {
+        # The mesh light inherits from the mesh geometry
+        rel light:geometry = </World/EmissivePanel>
+        float inputs:intensity = 5000.0
+        color3f inputs:color = (0.9, 0.95, 1.0)
+    }
+
+    # GeometryLight (deprecated): references external geometry
+    # DEPRECATED: use MeshLightAPI instead
+    def GeometryLight "LegacyGeoLight"
+    {
+        rel geometry = </World/EmissivePanel>
+        float inputs:intensity = 3000.0
+    }
+
+    def Volume "FireVolume" { }
+
+    def Xform "VolumeLightWrapper" (
+        prepend apiSchemas = ["VolumeLightAPI"]
+    )
+    {
+        rel light:geometry = </World/FireVolume>
+        float inputs:intensity = 2000.0
+        color3f inputs:color = (1.0, 0.5, 0.1)
+    }
+}

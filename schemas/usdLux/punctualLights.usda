@@ -1,0 +1,60 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+def Xform "World"
+{
+    # ── SphereLight: emits from a sphere surface ──────────────────────────────
+    def SphereLight "KeyLight"
+    {
+        # Radius of the sphere light source (in scene units)
+        float inputs:radius = 5.0
+        # Luminous intensity in nits
+        float inputs:intensity = 50000.0
+        color3f inputs:color = (1.0, 0.95, 0.8)
+        # Treat as a point light (radius=0 behavior) for distant scenes
+        bool inputs:treatAsPoint = false
+        bool inputs:normalize = true
+        double3 xformOp:translate = (200, 300, 100)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    # ── DiskLight: emits from a circular disk ─────────────────────────────────
+    def DiskLight "FillLight"
+    {
+        float inputs:radius = 30.0
+        float inputs:intensity = 20000.0
+        color3f inputs:color = (0.8, 0.9, 1.0)
+        double3 xformOp:translate = (-300, 200, 50)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    # ── RectLight: emits from a rectangular area ──────────────────────────────
+    def RectLight "WindowLight"
+    {
+        float inputs:width = 120.0
+        float inputs:height = 180.0
+        float inputs:intensity = 15000.0
+        color3f inputs:color = (1.0, 1.0, 0.95)
+        # Optional texture on the light surface
+        asset inputs:texture:file = @./textures/sky.exr@
+        double3 xformOp:translate = (0, 150, -200)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    # ── CylinderLight: emits from a cylinder surface ──────────────────────────
+    def CylinderLight "TubeLight"
+    {
+        float inputs:radius = 2.0
+        float inputs:length = 100.0
+        float inputs:intensity = 8000.0
+        color3f inputs:color = (1.0, 0.85, 0.7)
+        bool inputs:treatAsLine = false
+        double3 xformOp:translate = (0, 250, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+}
