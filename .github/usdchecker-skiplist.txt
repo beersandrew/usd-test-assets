@@ -1,0 +1,3 @@
+# Files to skip during usdchecker validation.
+# Add one path per line (relative to repo root).
+# Useful for intentionally invalid assets or known upstream issues.
