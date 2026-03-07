@@ -1,0 +1,48 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+def Xform "World"
+{
+    # ── DistantLight: infinitely distant directional light (e.g., sun) ────────
+    def DistantLight "Sun"
+    {
+        float inputs:angle = 0.53      # Angular diameter in degrees (sun = 0.53°)
+        float inputs:intensity = 100000.0
+        color3f inputs:color = (1.0, 0.98, 0.9)
+        float3 xformOp:rotateXYZ = (-45, 30, 0)
+        uniform token[] xformOpOrder = ["xformOp:rotateXYZ"]
+    }
+
+    # ── DomeLight: environment IBL dome ───────────────────────────────────────
+    def DomeLight "SkyDome"
+    {
+        float inputs:intensity = 1.0
+        asset inputs:texture:file = @./textures/hdri_sky.exr@
+        token inputs:texture:format = "latlong"
+        float3 xformOp:rotateXYZ = (0, 45, 0)
+        uniform token[] xformOpOrder = ["xformOp:rotateXYZ"]
+
+        # PortalLight must be a child of DomeLight
+        def PortalLight "WindowPortal"
+        {
+            float inputs:width = 200.0
+            float inputs:height = 300.0
+            double3 xformOp:translate = (0, 150, -250)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+    }
+
+    # ── DomeLight_1: newer dome with configurable pole axis ───────────────────
+    def DomeLight_1 "NightSky"
+    {
+        float inputs:intensity = 0.5
+        asset inputs:texture:file = @./textures/night_sky.exr@
+        # guideRadius: hint for visualizers
+        float guideRadius = 500.0
+    }
+}
