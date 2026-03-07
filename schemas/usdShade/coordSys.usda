@@ -1,0 +1,97 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+# UsdShadeCoordSysAPI: a multiple-apply API schema that binds named coordinate systems
+# to prims. Shaders reference these by name (e.g., "projection", "triplanar") so that
+# textures or procedurals can be evaluated in a specific local space.
+
+def Xform "World"
+{
+    # ── Geometry with coordinate system bindings ──────────────────────────────
+    # CoordSysAPI is applied as a multiple-apply schema with an instance name.
+    # Each instance binds one named coordinate system to a transform prim.
+    def Mesh "GroundPlane" (
+        prepend apiSchemas = [
+            "CoordSysAPI:projection",   # used by the planar-projection shader
+            "CoordSysAPI:triplanar",    # used by the triplanar-blend shader
+        ]
+    )
+    {
+        int[] faceVertexCounts = [4]
+        int[] faceVertexIndices = [0, 1, 2, 3]
+        point3f[] points = [(-5, 0, -5), (5, 0, -5), (5, 0, 5), (-5, 0, 5)]
+        float3[] extent = [(-5, 0, -5), (5, 0, 5)]
+        normal3f[] normals = [(0, 1, 0), (0, 1, 0), (0, 1, 0), (0, 1, 0)] (
+            interpolation = "faceVarying"
+        )
+
+        # coordSys:<name>:binding points to the Xform prim whose local space
+        # defines the coordinate system. Shaders query this by name.
+        rel coordSys:projection:binding = </World/CoordSystems/ProjectionXform>
+        rel coordSys:triplanar:binding  = </World/CoordSystems/TriplanarXform>
+    }
+
+    # ── Coordinate system transforms ──────────────────────────────────────────
+    # These Xform prims define the spaces that shaders refer to by name.
+    def Scope "CoordSystems"
+    {
+        # ProjectionXform: an overhead planar projection oriented straight down.
+        # A shader sampling a decal texture would evaluate UV in this space.
+        def Xform "ProjectionXform"
+        {
+            # Rotated 90° around X so that the projection faces downward (+Y → -Z).
+            float3 xformOp:rotateXYZ = (90, 0, 0)
+            double3 xformOp:translate = (0, 5, 0)  # lifted 5 units above the plane
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+        }
+
+        # TriplanarXform: a world-space aligned frame used for triplanar texturing.
+        # Its identity orientation means UVs align with the world XYZ axes.
+        def Xform "TriplanarXform"
+        {
+            # Uniform scale of 0.1 shrinks world coords into texture UV space.
+            float3 xformOp:scale = (0.1, 0.1, 0.1)
+            uniform token[] xformOpOrder = ["xformOp:scale"]
+        }
+    }
+
+    # ── Material that consumes the named coordinate systems ───────────────────
+    def Scope "Materials"
+    {
+        def Material "PlanarDecalMaterial"
+        {
+            token outputs:surface.connect = </World/Materials/PlanarDecalMaterial/Surface.outputs:surface>
+
+            def Shader "Surface" (
+                prepend apiSchemas = ["NodeDefAPI"]
+            )
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor.connect = </World/Materials/PlanarDecalMaterial/DecalTexture.outputs:rgb>
+                float inputs:roughness = 0.6
+                float inputs:metallic = 0.0
+                token outputs:surface
+            }
+
+            # This texture shader reads UVs from the "projection" coordinate system.
+            # In a renderer that supports UsdShadeCoordSysAPI, the shader would
+            # request the "projection" named coord sys from the bound geometry.
+            def Shader "DecalTexture" (
+                prepend apiSchemas = ["NodeDefAPI"]
+            )
+            {
+                uniform token info:id = "UsdUVTexture"
+                asset inputs:file = @./textures/decal.png@
+                token inputs:wrapS = "clamp"   # decals should not tile
+                token inputs:wrapT = "clamp"
+                token inputs:sourceColorSpace = "sRGB"
+                color3f outputs:rgb
+            }
+        }
+    }
+}

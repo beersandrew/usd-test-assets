@@ -1,0 +1,185 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+# usdShade overview — all major shading schema concepts in one file.
+#
+# Schema summary:
+#   UsdShadeShader           — a single shading node (e.g. UsdPreviewSurface, UsdUVTexture)
+#   UsdShadeNodeGraph        — a composable container of shader nodes with promoted I/O
+#   UsdShadeNodeDefAPI       — applied to Shader/NodeGraph to declare info:id
+#   UsdShadeConnectableAPI   — manages connections between shader inputs and outputs
+#   UsdShadeMaterial         — aggregates surface/displacement/volume outputs for renderers
+#   UsdShadeMaterialBindingAPI — applied to geometry to bind a material (direct or by purpose)
+#   UsdShadeCoordSysAPI      — multiple-apply; binds named coordinate systems to geometry
+
+def Xform "World"
+{
+    # ── Material library ──────────────────────────────────────────────────────
+    def Scope "Materials"
+    {
+        # ── Textured PBR material assembled from a NodeGraph ──────────────────
+        def Material "TexturedPBR"
+        {
+            token outputs:surface.connect    = </World/Materials/TexturedPBR/Network.outputs:surface>
+            token outputs:displacement.connect = </World/Materials/TexturedPBR/Network.outputs:displacement>
+
+            # NodeGraph encapsulates the full shader network and exposes
+            # only the interface knobs that callers need to override.
+            def NodeGraph "Network" (
+                prepend apiSchemas = ["NodeDefAPI"]
+            )
+            {
+                # Interface inputs — promoted from the internal shaders.
+                float  inputs:roughness  = 0.45
+                color3f inputs:baseColor = (0.72, 0.45, 0.2)   # warm tan
+                float  inputs:metallic   = 0.0
+
+                # The network's final outputs route to the material above.
+                token outputs:surface.connect      = </World/Materials/TexturedPBR/Network/Surface.outputs:surface>
+                token outputs:displacement.connect = </World/Materials/TexturedPBR/Network/Surface.outputs:displacement>
+
+                # ── UsdPreviewSurface ─────────────────────────────────────────
+                # info:id selects the shader from the Sdr registry.
+                def Shader "Surface" (
+                    prepend apiSchemas = ["NodeDefAPI"]
+                )
+                {
+                    uniform token info:id = "UsdPreviewSurface"
+                    uniform token info:implementationSource = "id"
+
+                    # Driven by NodeGraph interface inputs via connections.
+                    color3f inputs:diffuseColor.connect = </World/Materials/TexturedPBR/Network.inputs:baseColor>
+                    float   inputs:roughness.connect    = </World/Materials/TexturedPBR/Network.inputs:roughness>
+                    float   inputs:metallic.connect     = </World/Materials/TexturedPBR/Network.inputs:metallic>
+
+                    # Diffuse color is also overridden by the texture below.
+                    color3f inputs:diffuseColor.connect = </World/Materials/TexturedPBR/Network/DiffuseTex.outputs:rgb>
+
+                    float inputs:ior     = 1.5   # dielectric IOR
+                    float inputs:opacity = 1.0
+                    int   inputs:useSpecularWorkflow = 0  # metallic/roughness workflow
+
+                    token outputs:surface
+                    token outputs:displacement
+                }
+
+                # ── Primvar reader (UV coordinates) ───────────────────────────
+                def Shader "TexCoordReader" (
+                    prepend apiSchemas = ["NodeDefAPI"]
+                )
+                {
+                    uniform token info:id = "UsdPrimvarReader_float2"
+                    token inputs:varname = "st"   # reads the "st" primvar from the mesh
+                    float2 outputs:result
+                }
+
+                # ── Diffuse color texture ─────────────────────────────────────
+                def Shader "DiffuseTex" (
+                    prepend apiSchemas = ["NodeDefAPI"]
+                )
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @./textures/diffuse.png@
+                    float2 inputs:st.connect = </World/Materials/TexturedPBR/Network/TexCoordReader.outputs:result>
+                    token inputs:wrapS = "repeat"
+                    token inputs:wrapT = "repeat"
+                    token inputs:sourceColorSpace = "sRGB"
+                    float4 inputs:scale = (1, 1, 1, 1)
+                    float4 inputs:bias  = (0, 0, 0, 0)
+                    color3f outputs:rgb
+                    float   outputs:a
+                }
+
+                # ── Roughness texture (linear / raw) ──────────────────────────
+                def Shader "RoughnessTex" (
+                    prepend apiSchemas = ["NodeDefAPI"]
+                )
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @./textures/roughness.png@
+                    float2 inputs:st.connect = </World/Materials/TexturedPBR/Network/TexCoordReader.outputs:result>
+                    token inputs:wrapS = "repeat"
+                    token inputs:wrapT = "repeat"
+                    token inputs:sourceColorSpace = "raw"   # roughness is not a color
+                    float outputs:r
+                }
+            }
+        }
+
+        # ── Simple metallic material (no textures) ────────────────────────────
+        def Material "BrushedMetal"
+        {
+            token outputs:surface.connect = </World/Materials/BrushedMetal/MetalShader.outputs:surface>
+
+            def Shader "MetalShader" (
+                prepend apiSchemas = ["NodeDefAPI"]
+            )
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (0.9, 0.9, 0.85)  # cool silver
+                float   inputs:roughness    = 0.2                # light brush marks
+                float   inputs:metallic     = 1.0                # fully metallic
+                float   inputs:ior          = 2.95               # aluminium n
+                token outputs:surface
+            }
+        }
+    }
+
+    # ── Geometry with material bindings and coordinate systems ────────────────
+    def Scope "Props"
+    {
+        # Sphere bound to the textured PBR material.
+        # CoordSysAPI is applied for a planar projection coord system.
+        def Sphere "TexturedSphere" (
+            prepend apiSchemas = [
+                "MaterialBindingAPI",
+                "CoordSysAPI:projection",   # named coord sys used by shaders
+            ]
+        )
+        {
+            double radius = 1.0
+            float3[] extent = [(-1, -1, -1), (1, 1, 1)]
+            double3 xformOp:translate = (0, 1, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+
+            # Default binding — used by all render purposes unless overridden.
+            rel material:binding = </World/Materials/TexturedPBR>
+
+            # Bind the "projection" coordinate system to an Xform prim.
+            rel coordSys:projection:binding = </World/CoordSystems/Overhead>
+        }
+
+        # Box bound to the brushed metal material, with a preview override.
+        def Cube "MetalBox" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            double size = 2.0
+            float3[] extent = [(-1, -1, -1), (1, 1, 1)]
+            double3 xformOp:translate = (4, 1, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+
+            # Full binding — offline renderers use this.
+            rel material:binding = </World/Materials/BrushedMetal>
+            # Preview binding — lightweight stand-in for fast viewport display.
+            rel material:binding:preview = </World/Materials/BrushedMetal>
+        }
+    }
+
+    # ── Named coordinate system transforms ────────────────────────────────────
+    def Scope "CoordSystems"
+    {
+        # Overhead planar projection: translated above the scene, rotated to face down.
+        def Xform "Overhead"
+        {
+            float3 xformOp:rotateXYZ = (90, 0, 0)
+            double3 xformOp:translate = (0, 5, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+        }
+    }
+}
