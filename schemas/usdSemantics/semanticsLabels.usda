@@ -1,0 +1,40 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+def Xform "World"
+{
+    # ── Car asset: labeled with both category and style taxonomies ────────────
+    def Xform "SportsCar" (
+        # Two taxonomy instances applied: :category and :style
+        prepend apiSchemas = ["SemanticsLabelsAPI:category", "SemanticsLabelsAPI:style"]
+    )
+    {
+        # category taxonomy: what kind of object this is
+        uniform token[] semantics:category:labels = ["vehicle", "car", "automobile"]
+
+        # style taxonomy: visual/design style descriptors
+        uniform token[] semantics:style:labels = ["sporty", "modern", "low-profile"]
+
+        def Mesh "Body" (
+            # Child prims can add their own labels; they inherit parent labels hierarchically
+            prepend apiSchemas = ["SemanticsLabelsAPI:category"]
+        )
+        {
+            uniform token[] semantics:category:labels = ["car-body", "exterior"]
+        }
+    }
+
+    # ── Tree asset: only category taxonomy ────────────────────────────────────
+    def Xform "OakTree" (
+        prepend apiSchemas = ["SemanticsLabelsAPI:category", "SemanticsLabelsAPI:environment"]
+    )
+    {
+        uniform token[] semantics:category:labels = ["vegetation", "tree", "deciduous"]
+        uniform token[] semantics:environment:labels = ["outdoor", "natural", "forest"]
+    }
+}
