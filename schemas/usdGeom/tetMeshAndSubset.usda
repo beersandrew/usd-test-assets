@@ -1,0 +1,117 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+# UsdGeomTetMesh — tetrahedral volume mesh used for FEM simulation.
+# UsdGeomGeomSubset — a subset of faces/edges/points on a parent Gprim,
+#   used to bind materials or physics properties to parts of a mesh.
+
+def Xform "World"
+{
+    # ── TetMesh: a simple tetrahedron (4 vertices, 1 tet) ─────────────────────
+    def TetMesh "SimpleTet"
+    {
+        # points: the 4 vertices of the tetrahedron.
+        point3f[] points = [
+            (0, 0, 0), (2, 0, 0), (1, 0, -2), (1, 2, -1)
+        ]
+        # tetVertexIndices: groups of 4 indices defining each tetrahedron.
+        int4[] tetVertexIndices = [(0, 1, 2, 3)]
+        # Surface triangles — used for rendering the tet boundary.
+        int[] faceVertexCounts = [3, 3, 3, 3]
+        int[] faceVertexIndices = [
+            0, 2, 1,   # base
+            0, 1, 3,
+            1, 2, 3,
+            0, 3, 2
+        ]
+        float3[] extent = [(0, 0, -2), (2, 2, 0)]
+        double3 xformOp:translate = (-4, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    # ── TetMesh: a more complex mesh with multiple tets ───────────────────────
+    # Two tets sharing a face, representing a simple volume.
+    def TetMesh "DoubleTet"
+    {
+        point3f[] points = [
+            (0, 0, 0), (2, 0, 0), (1, 0, -2), (1, 2, -1),
+            (3, 2, -1)   # extra apex for second tet
+        ]
+        # Two tets: the first shares face [1,2,3] with the second.
+        int4[] tetVertexIndices = [(0, 1, 2, 3), (1, 4, 2, 3)]
+        int[] faceVertexCounts = [3, 3, 3, 3, 3, 3]
+        int[] faceVertexIndices = [
+            0, 2, 1,
+            0, 1, 3,
+            0, 3, 2,
+            1, 4, 3,
+            1, 2, 4,
+            2, 3, 4
+        ]
+        float3[] extent = [(0, 0, -2), (3, 2, 0)]
+        double3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+
+    # ── GeomSubset: partitioning a mesh's faces into named regions ────────────
+    # A box mesh split into "top", "sides", and "bottom" face groups.
+    def Mesh "BoxWithSubsets"
+    {
+        int[] faceVertexCounts = [4, 4, 4, 4, 4, 4]
+        int[] faceVertexIndices = [
+            0, 1, 3, 2,   # face 0: -Z
+            4, 6, 7, 5,   # face 1: +Z
+            0, 4, 5, 1,   # face 2: -Y (bottom)
+            2, 3, 7, 6,   # face 3: +Y (top)
+            0, 2, 6, 4,   # face 4: -X (side)
+            1, 5, 7, 3    # face 5: +X (side)
+        ]
+        point3f[] points = [
+            (-1, -1, -1), ( 1, -1, -1),
+            (-1,  1, -1), ( 1,  1, -1),
+            (-1, -1,  1), ( 1, -1,  1),
+            (-1,  1,  1), ( 1,  1,  1)
+        ]
+        float3[] extent = [(-1, -1, -1), (1, 1, 1)]
+        uniform token subdivisionScheme = "none"
+
+        # GeomSubset for the top face — used to bind a different material.
+        def GeomSubset "Top" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            # elementType "face" means indices refer to polygon faces.
+            uniform token elementType = "face"
+            # familyName groups subsets that together partition the parent.
+            uniform token familyName = "materialBind"
+            int[] indices = [3]   # face index 3 is the +Y face
+        }
+
+        def GeomSubset "Bottom" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            uniform token elementType = "face"
+            uniform token familyName = "materialBind"
+            int[] indices = [2]   # face index 2 is the -Y face
+        }
+
+        def GeomSubset "Sides" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            uniform token elementType = "face"
+            uniform token familyName = "materialBind"
+            # Four side faces: -Z, +Z, -X, +X
+            int[] indices = [0, 1, 4, 5]
+        }
+
+        double3 xformOp:translate = (6, 1, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+}
