@@ -1,0 +1,94 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+# Demonstrates UsdColorSpaceAPI (single-apply) and UsdColorSpaceDefinitionAPI (multiple-apply).
+#
+# UsdColorSpaceAPI attaches a named colorSpace token to a prim, indicating the
+# color space in which textures or colors on that prim are encoded.
+#
+# UsdColorSpaceDefinitionAPI defines custom color spaces for a scene, providing
+# their primaries, white point, and transfer function parameters.
+def Xform "World" (
+    # UsdColorSpaceAPI: marks this prim's authored color data as sRGB
+    prepend apiSchemas = ["ColorSpaceAPI"]
+)
+{
+    uniform token colorSpace = "sRGB"  # default output color space for the scene
+
+    # Geometry with an sRGB-encoded albedo texture
+    def Mesh "Ground" (
+        prepend apiSchemas = ["ColorSpaceAPI"]
+    )
+    {
+        uniform token colorSpace = "sRGB"  # albedo texture encoded in sRGB
+
+        float3[] extent = [(-5, 0, -5), (5, 0, 5)]
+        int[] faceVertexCounts = [4]
+        int[] faceVertexIndices = [0, 1, 2, 3]
+        point3f[] points = [(-5, 0, -5), (5, 0, -5), (5, 0, 5), (-5, 0, 5)]
+    }
+
+    # Normal map geometry uses a linear color space (normals are not perceptual)
+    def Mesh "Wall" (
+        prepend apiSchemas = ["ColorSpaceAPI"]
+    )
+    {
+        uniform token colorSpace = "lin_rec709"  # linear Rec.709 for normal/roughness maps
+
+        float3[] extent = [(-3, 0, 0), (3, 4, 0)]
+        int[] faceVertexCounts = [4]
+        int[] faceVertexIndices = [0, 1, 2, 3]
+        point3f[] points = [(-3, 0, 0), (3, 0, 0), (3, 4, 0), (-3, 4, 0)]
+    }
+
+    # ColorSpaceDefinitionAPI (multiple-apply) — defines custom named color spaces.
+    # Each instance name becomes the token used by ColorSpaceAPI on other prims.
+    def "ColorSpaceLibrary" (
+        prepend apiSchemas = [
+            "ColorSpaceDefinitionAPI:studio_wide",
+            "ColorSpaceDefinitionAPI:studio_log"
+        ]
+    )
+    {
+        # studio_wide: wide-gamut P3-D65 color space for HDR mastering
+        uniform token colorSpaceDefinition:studio_wide:name = "studio_wide"
+        uniform string colorSpaceDefinition:studio_wide:description = "P3-D65 wide-gamut HDR mastering space"  # human-readable label
+        uniform float2 colorSpaceDefinition:studio_wide:redPrimary   = (0.68, 0.32)   # CIE xy chromaticity — DCI-P3 red
+        uniform float2 colorSpaceDefinition:studio_wide:greenPrimary = (0.265, 0.69)  # CIE xy chromaticity — DCI-P3 green
+        uniform float2 colorSpaceDefinition:studio_wide:bluePrimary  = (0.15, 0.06)   # CIE xy chromaticity — DCI-P3 blue
+        uniform float2 colorSpaceDefinition:studio_wide:whitePoint   = (0.3127, 0.329)  # D65 illuminant
+        uniform float colorSpaceDefinition:studio_wide:gamma         = 1.0  # linear transfer function (gamma = 1 means linear)
+
+        # studio_log: log-encoded space used for VFX plate ingestion
+        uniform token colorSpaceDefinition:studio_log:name = "studio_log"
+        uniform string colorSpaceDefinition:studio_log:description = "ACEScg log-encoded VFX working space"
+        uniform float2 colorSpaceDefinition:studio_log:redPrimary   = (0.713, 0.293)   # ACES AP1 red primaries
+        uniform float2 colorSpaceDefinition:studio_log:greenPrimary = (0.165, 0.83)    # ACES AP1 green primaries
+        uniform float2 colorSpaceDefinition:studio_log:bluePrimary  = (0.128, 0.044)   # ACES AP1 blue primaries
+        uniform float2 colorSpaceDefinition:studio_log:whitePoint   = (0.32168, 0.33767)  # ACES white point D60
+        uniform float colorSpaceDefinition:studio_log:gamma         = 1.0  # log curve applied separately via linearBias
+        uniform float colorSpaceDefinition:studio_log:linearBias    = 0.0  # log offset (no lift)
+    }
+
+    def DistantLight "SunLight"
+    {
+        float inputs:intensity = 50000  # outdoor illuminance in lux
+        float inputs:angle = 0.53       # sun angular diameter
+        float3 xformOp:rotateXYZ = (-45, 30, 0)
+        uniform token[] xformOpOrder = ["xformOp:rotateXYZ"]
+    }
+
+    def Camera "MainCam"
+    {
+        float2 clippingRange = (0.1, 1000)
+        float focalLength = 35
+        float horizontalAperture = 36
+        float3 xformOp:translate = (0, 3, 10)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+}
