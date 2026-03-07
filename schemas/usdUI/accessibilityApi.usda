@@ -1,0 +1,37 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+def Xform "World"
+{
+    # UsdUIAccessibilityAPI (multiple-apply) applied with instance name "default"
+    # Provides human-readable label, description, and priority for accessibility tools.
+    def Mesh "Button" (
+        prepend apiSchemas = ["AccessibilityAPI:default"]
+    )
+    {
+        # Human-readable label for the element
+        uniform token accessibility:default:label = "Submit Button"
+        # Longer description for screen readers
+        uniform string accessibility:default:description = "Submits the current form data"
+        # Priority level: high, medium, low
+        uniform token accessibility:default:priority = "high"
+    }
+
+    def Xform "Panel" (
+        prepend apiSchemas = ["AccessibilityAPI:default", "AccessibilityAPI:navigation"]
+    )
+    {
+        uniform token accessibility:default:label = "Main Control Panel"
+        uniform string accessibility:default:description = "Primary UI control surface"
+        uniform token accessibility:default:priority = "medium"
+
+        # Second instance for navigation-specific accessibility
+        uniform token accessibility:navigation:label = "Navigation Panel"
+        uniform token accessibility:navigation:priority = "low"
+    }
+}
