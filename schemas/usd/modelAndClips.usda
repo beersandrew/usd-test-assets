@@ -1,0 +1,159 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+# Demonstrates UsdModelAPI (kind metadata + assetInfo) and UsdClipsAPI
+# (value clips for externally-animated attributes).
+#
+# UsdModelAPI is a codeless API that provides helpers for reading/writing
+# the "kind" metadata and assetInfo dictionary on model prims. Kinds establish
+# a hierarchy: assembly > group > component > subcomponent.
+#
+# UsdClipsAPI lets a prim source time-sampled attribute values from one or
+# more external "clip" layers, enabling non-destructive animation overrides.
+def Xform "World"
+{
+    # A top-level assembly groups several assets
+    def Xform "Scene" (
+        kind = "assembly"  # top-level grouping of multiple components
+        prepend apiSchemas = ["ModelAPI"]
+    )
+    {
+        dictionary assetInfo = {
+            asset identifier = @./scene.usd@          # asset path (SdfAssetPath)
+            string name = "ParkingLot"                 # human-readable name
+            string version = "2.1"                     # semantic version
+        }
+
+        # A component is a self-contained, publishable asset unit
+        def Xform "Car" (
+            kind = "component"  # leaf-level publishable asset
+            prepend apiSchemas = ["ModelAPI", "ClipsAPI"]
+        )
+        {
+            # assetInfo stores structured info used by asset management systems
+            dictionary assetInfo = {
+                asset identifier = @./car.usd@
+                string name = "SportsCar"
+                string version = "1.0"
+                dictionary clips = {
+                    string[] active = ["./wheels_anim.usda"]  # which clip files are active
+                }
+            }
+
+            # UsdClipsAPI metadata — drives the value clip system.
+            # The clip set name "default" is the conventional primary clip set.
+            uniform token clips:default:interpolateMissingClipValues = "false"  # no gap-filling between clips
+
+            # Each entry maps a time code to a clip layer path.
+            # (clipAssetPaths lists all clip files; clipTimes maps stage-time -> clip-time)
+            asset[] clips:default:assetPaths = [@./wheels_anim_001.usda@, @./wheels_anim_002.usda@]  # clip file list
+            double2[] clips:default:active = [(0, 0), (48, 1)]  # frame 0 uses clip[0], frame 48 uses clip[1]
+            double2[] clips:default:times = [(0, 0), (24, 24), (48, 0), (72, 24)]  # stage-time -> clip-time remapping
+            string clips:default:primPath = "/Car"  # prim path inside each clip layer
+
+            # Body mesh — static geometry
+            def Mesh "Body"
+            {
+                float3[] extent = [(-1.1, 0, -2.4), (1.1, 1.5, 2.4)]
+                int[] faceVertexCounts = [4, 4, 4, 4, 4, 4]
+                int[] faceVertexIndices = [0, 1, 2, 3, 4, 5, 6, 7, 0, 4, 5, 1, 3, 2, 6, 7, 0, 3, 7, 4, 1, 5, 6, 2]
+                point3f[] points = [
+                    (-1.1, 0, -2.4), (1.1, 0, -2.4), (1.1, 1.5, -2.4), (-1.1, 1.5, -2.4),
+                    (-1.1, 0,  2.4), (1.1, 0,  2.4), (1.1, 1.5,  2.4), (-1.1, 1.5,  2.4)
+                ]
+                color3f[] primvars:displayColor = [(0.1, 0.1, 0.8)]  # deep blue paint
+            }
+
+            # Front-left wheel — rotation animated via value clips
+            def Xform "WheelFL"
+            {
+                float3 xformOp:translate = (-1.0, 0.35, 1.8)  # front-left wheel position
+                # xformOp:rotateX is driven by value clips (wheels_anim_001/002.usda)
+                float xformOp:rotateX = 0  # default; overridden by clips at runtime
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateX"]
+
+                def Cylinder "Tire"
+                {
+                    double height = 0.25   # tire width
+                    double radius = 0.35   # tire radius
+                    int[] faceVertexCounts = []
+                    int[] faceVertexIndices = []
+                    point3f[] points = []
+                }
+            }
+
+            # Front-right wheel
+            def Xform "WheelFR"
+            {
+                float3 xformOp:translate = (1.0, 0.35, 1.8)   # front-right
+                float xformOp:rotateX = 0
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateX"]
+
+                def Cylinder "Tire"
+                {
+                    double height = 0.25
+                    double radius = 0.35
+                    int[] faceVertexCounts = []
+                    int[] faceVertexIndices = []
+                    point3f[] points = []
+                }
+            }
+        }
+
+        # A simple group organises props without publishing as a component
+        def Xform "Props" (
+            kind = "group"  # logical grouping, not a publishable component
+        )
+        {
+            def Xform "Lamppost" (
+                kind = "component"
+                prepend apiSchemas = ["ModelAPI"]
+            )
+            {
+                dictionary assetInfo = {
+                    asset identifier = @./lamppost.usd@
+                    string name = "StreetLamp"
+                    string version = "3.0"
+                }
+
+                def Cylinder "Pole"
+                {
+                    double height = 5.0    # pole height in scene units (cm * 0.01 = meters)
+                    double radius = 0.05   # thin steel pole
+                    color3f[] primvars:displayColor = [(0.4, 0.4, 0.4)]  # galvanised grey
+                }
+
+                def Sphere "LampHead"
+                {
+                    double radius = 0.2   # lamp globe radius
+                    float3 xformOp:translate = (0, 5.2, 0)  # sits atop the pole
+                    uniform token[] xformOpOrder = ["xformOp:translate"]
+                    color3f[] primvars:displayColor = [(1.0, 0.95, 0.8)]  # warm white emission
+                }
+            }
+        }
+    }
+
+    def DistantLight "SunLight"
+    {
+        float inputs:intensity = 50000
+        float inputs:angle = 0.53
+        float3 xformOp:rotateXYZ = (-50, 20, 0)
+        uniform token[] xformOpOrder = ["xformOp:rotateXYZ"]
+    }
+
+    def Camera "MainCam"
+    {
+        float2 clippingRange = (0.1, 2000)
+        float focalLength = 50
+        float horizontalAperture = 36
+        float3 xformOp:translate = (5, 4, 12)
+        float3 xformOp:rotateXYZ = (-15, 20, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+    }
+}
