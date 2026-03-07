@@ -1,0 +1,88 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 0.01
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+def Xform "World"
+{
+    # ── 3D Gaussian Splat particle field ──────────────────────────────────────
+    # UsdVolParticleField stores per-particle data;
+    # ParticleField3DGaussianSplat is a concrete type for Gaussian splatting.
+    # Applied APIs define which particle attributes are present.
+    def ParticleField "GaussianSplats" (
+        prepend apiSchemas = [
+            "ParticleFieldPositionAttributeAPI",
+            "ParticleFieldOrientationAttributeAPI",
+            "ParticleFieldScaleAttributeAPI",
+            "ParticleFieldOpacityAttributeAPI",
+            "ParticleFieldKernelGaussianEllipsoidAPI",
+            "ParticleFieldSphericalHarmonicsAttributeAPI",
+            "ParticleFieldRadianceBaseAPI"
+        ]
+    )
+    {
+        # ── Core particle data ────────────────────────────────────────────────
+
+        # PositionAttributeAPI: per-particle world-space positions
+        uniform token particleField:positionAttr = "points"
+        point3f[] points = [(0,0,0), (10,5,0), (-5,10,3), (7,-3,8)]
+
+        # OrientationAttributeAPI: per-particle orientation as quaternion
+        uniform token particleField:orientationAttr = "orientations"
+        quath[] orientations = [(1,0,0,0), (0.707,0.707,0,0), (1,0,0,0), (0.5,0.5,0.5,0.5)]
+
+        # ScaleAttributeAPI: per-particle 3D scale (ellipsoid radii)
+        uniform token particleField:scaleAttr = "scales"
+        float3[] scales = [(0.1,0.1,0.1), (0.2,0.15,0.1), (0.08,0.08,0.12), (0.15,0.2,0.1)]
+
+        # OpacityAttributeAPI: per-particle opacity [0,1]
+        uniform token particleField:opacityAttr = "opacities"
+        float[] opacities = [0.9, 0.7, 0.85, 0.6]
+
+        # ── Gaussian kernel ────────────────────────────────────────────────────
+        # KernelGaussianEllipsoidAPI: 3D Gaussian splatting kernel params
+        # (scale and orientation define the ellipsoid covariance)
+
+        # ── Spherical harmonics radiance ───────────────────────────────────────
+        # SphericalHarmonicsAttributeAPI: SH coefficients for view-dependent color
+        uniform token particleField:shAttr = "shCoeffs"
+        # Degree-1 SH: 4 coefficients × 3 channels (RGB)
+        float[] shCoeffs = [
+            0.5, 0.4, 0.3,   # DC (band 0) - base color
+            0.1, 0.0, 0.0,   # band 1 Y(-1,1)
+            0.0, 0.1, 0.0,   # band 1 Y(0,1)
+            0.0, 0.0, 0.1    # band 1 Y(1,1)
+        ]
+
+        # RadianceBaseAPI: radiance scale
+        float particleField:radianceScale = 1.0
+    }
+
+    # ── Surflet-based particle field ──────────────────────────────────────────
+    def ParticleField "SurfletField" (
+        prepend apiSchemas = [
+            "ParticleFieldPositionAttributeAPI",
+            "ParticleFieldScaleAttributeAPI",
+            "ParticleFieldOpacityAttributeAPI",
+            "ParticleFieldKernelGaussianSurfletAPI",
+            "ParticleFieldRadianceBaseAPI"
+        ]
+    )
+    {
+        uniform token particleField:positionAttr = "points"
+        point3f[] points = [(5,0,0), (10,3,2), (15,0,1)]
+
+        uniform token particleField:scaleAttr = "scales"
+        float3[] scales = [(0.05,0.05,0.05), (0.07,0.07,0.07), (0.06,0.06,0.06)]
+
+        uniform token particleField:opacityAttr = "opacities"
+        float[] opacities = [0.8, 0.75, 0.9]
+
+        # KernelGaussianSurfletAPI: oriented disc kernel (surflet)
+        # Uses position + normal for 2.5D Gaussian
+        float particleField:radianceScale = 0.8
+    }
+}
